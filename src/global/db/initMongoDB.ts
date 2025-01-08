@@ -1,19 +1,31 @@
 import mongoose from 'mongoose';
-import { getEnvVar } from '../../libs/utils/getEnvVar';
+import { Logger, ConfigService } from '@/global';
+import { useContainer, InternalServerError } from 'routing-controllers';
+import { Container } from 'typedi';
+
+  useContainer(Container);
+
+  const config = Container.get(ConfigService);
+  const logger = Container.get(Logger);
+
 
 export const initMongoDB = async (): Promise<void> => {
   try {
-    const user: string = getEnvVar('MONGODB_USER');
-    const pwd: string = getEnvVar('MONGODB_PASSWORD');
-    const url: string = getEnvVar('MONGODB_URL');
+    const user: string = config.get('MONGODB_USER', "");
+    const pwd: string = config.get('MONGODB_PASSWORD', "");
+    const url: string = config.get('MONGODB_URL', "");
 
     await mongoose.connect(
       `mongodb+srv://${user}:${pwd}@${url}/?retryWrites=true&w=majority`,
     );
 
-    console.log('Mongo connection successfully established!');
+    logger.log('Mongo connection successfully established!');
   } catch (e: unknown) {
-    console.error('Error while setting up mongo connection', e);
-    throw e;
+    logger.error(`Error while setting up mongo connection, ${e}`);
+    if (e instanceof Error) {
+        throw new InternalServerError(`error: ${e.message}`);
+      } else {
+        throw new InternalServerError(`Unknown error: ${JSON.stringify(e)}`);
+      }
   }
 };

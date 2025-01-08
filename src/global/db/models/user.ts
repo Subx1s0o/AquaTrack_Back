@@ -31,7 +31,7 @@ const userSchema = new Schema<IUser>(
     avatarURL: {
       type: String,
       required: true,
-      default: 'https://cloudinary.com/...', 
+      default: 'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png', 
     },
     weight: {
       type: Number,
