@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+
 import express from 'express';
 import path from 'path';
 import { useContainer, useExpressServer } from 'routing-controllers';
@@ -23,11 +23,15 @@ export const initializeApp = () => {
   app.use(express.json());
 
   useExpressServer(app, {
+    cors: {
+      origin: '*',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    },
     controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
     defaultErrorHandler: false,
     middlewares: [],
     interceptors: [],
-    validation: false
+    validation: true
   });
 
   app.use('*', notFoundHandler);

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { NotFoundError } from 'routing-controllers';
 
 export const notFoundHandler = (
   req: Request,
@@ -6,7 +7,7 @@ export const notFoundHandler = (
   next: NextFunction
 ) => {
   if (!res.headersSent) {
-    res.status(404).json({ message: 'Not Found' });
+    next(new NotFoundError('Not Found'));
   } else {
     next();
   }

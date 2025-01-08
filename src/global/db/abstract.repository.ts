@@ -1,6 +1,6 @@
 import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Logger } from '@/global';
-import createHttpError from 'http-errors';
+import { BadRequestError, NotFoundError } from 'routing-controllers';
 
 export abstract class AbstractRepository<TDocument extends Document> {
   constructor(
@@ -16,7 +16,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
       return await createdDocument.save();
     } catch (error) {
       this.logger.error(`Error creating document: ${error}`);
-      throw createHttpError(400, `Error creating document`);
+      throw new BadRequestError('Error creating document');
     }
   }
 
@@ -25,8 +25,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
     const document = await this.model.findOne(filter).lean().exec();
     if (!document) {
       this.logger.error(`Document with ${filter}: ${filter} not found.`);
-      throw createHttpError(
-        404,
+      throw new NotFoundError(
         `Document with ${filter}: ${filter} not found.`
       );
     }
@@ -48,7 +47,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
       this.logger.warn(
         `Document with ${filter}: ${filter} not found for update.`
       );
-      throw createHttpError(404, `Document not found for update.`);
+      throw new NotFoundError(`Document not found for update.`);
     }
 
     this.logger.log(`Updated document: ${JSON.stringify(updatedDocument)}`);
@@ -75,8 +74,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
       this.logger.warn(
         `Document with ${filter}: ${filter} not found for deletion.`
       );
-      throw createHttpError(
-        404,
+      throw new NotFoundError(
         `Document with ${filter}: ${filter} not found for deletion.`
       );
     }

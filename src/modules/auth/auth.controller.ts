@@ -2,7 +2,7 @@ import { Controller, Post, Body, HttpCode } from 'routing-controllers';
 import { Service } from 'typedi';
 import AuthService from './auth.service';
 import { validateBody } from '@/libs/utils';
-import { RegisterDto, RegisterDtoType } from './dto/register';
+import { RegisterDto } from './dto/register';
 
 @Service()
 @Controller('/auth')
@@ -11,9 +11,9 @@ class AuthController {
 
   @Post('/register')
   @HttpCode(201)
-  async register(@Body() body: RegisterDtoType) {
-    const validatedBody = validateBody(RegisterDto, body);
-    const result = await this.authService.register(validatedBody);
+  async register(@Body() body: RegisterDto) {
+    // const validatedBody = validateBody(RegisterDto, body);
+    const result = await this.authService.register(body);
     return result;
   }
 }
