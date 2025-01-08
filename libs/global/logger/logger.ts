@@ -17,7 +17,7 @@ export class Logger {
     return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
   }
 
-  log(message: string) {
+  log(message: string): void {
     const time = this.getCurrentTime();
     console.log(
       chalk.green(`[${time}]`) +
@@ -28,7 +28,7 @@ export class Logger {
     );
   }
 
-  warn(message: string) {
+  warn(message: string): void {
     const time = this.getCurrentTime();
     console.log(
       chalk.yellow(`[${time}]`) +
@@ -39,7 +39,7 @@ export class Logger {
     );
   }
 
-  error(message: string) {
+  error(message: string): void {
     const time = this.getCurrentTime();
     console.log(
       chalk.red(`[${time}]`) +

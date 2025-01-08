@@ -17,47 +17,44 @@ const userSchema = new Schema<IUser>(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true
     },
     password: {
       type: String,
-      required: true,
+      required: true
     },
     name: {
       type: String,
-      required: true,
-      default:""
+      required: true
     },
     avatarURL: {
       type: String,
-      required: true,
-      default: 'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png', 
+      required: false,
+      default:
+        'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
     },
     weight: {
       type: Number,
-      required: true,
-      default: 0,
+      required: true
     },
     activeTime: {
       type: Number,
-      required: true,
-      default: 0,
+      required: true
     },
     gender: {
       type: String,
       required: true,
-      enum: ['male', 'female'], 
+      enum: ['male', 'female']
     },
     dailyNorm: {
       type: Number,
-      required: true,
-      default: 1500, 
-    },
+      required: true
+    }
   },
   {
-    timestamps: true, 
-    versionKey: false, 
-  },
+    timestamps: true,
+    versionKey: false
+  }
 );
 
 export const UserModel = model<IUser>('users', userSchema);

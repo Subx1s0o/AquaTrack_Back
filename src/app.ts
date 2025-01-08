@@ -3,13 +3,13 @@ import path from 'path';
 import { useContainer, useExpressServer } from 'routing-controllers';
 import { Container } from 'typedi';
 import { configDotenv } from 'dotenv';
-import { errorHandler, notFoundHandler } from '@/libs/middlewares';
-import { Logger, ConfigService } from '@/global';
+import { errorHandler, notFoundHandler } from '../libs/middlewares';
+import { Logger, ConfigService } from '@/libs/global';
 
 configDotenv();
 console.clear();
 
-export const initializeApp = () => {
+export const initializeApp = (): express.Application => {
   const app = express();
 
   useContainer(Container);
@@ -28,7 +28,7 @@ export const initializeApp = () => {
     },
     controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
     defaultErrorHandler: false,
-    validation: true,
+    validation: true
     // currentUserChecker:  () => {}, Імплементувати логіку діставання юзера сюди
     // authorizationChecker: () => {} Імплементувати логіку перевірка авторизаційного токену сюди
   });
