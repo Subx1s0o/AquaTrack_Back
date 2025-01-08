@@ -1,4 +1,3 @@
-
 import express from 'express';
 import path from 'path';
 import { useContainer, useExpressServer } from 'routing-controllers';
@@ -25,7 +24,7 @@ export const initializeApp = () => {
   useExpressServer(app, {
     cors: {
       origin: '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
     },
     controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
     defaultErrorHandler: false,

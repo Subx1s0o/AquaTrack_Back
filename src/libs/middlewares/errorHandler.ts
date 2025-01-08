@@ -3,7 +3,7 @@ import { HttpError } from 'routing-controllers';
 import { ValidationError } from 'class-validator';
 
 interface CustomHttpError extends HttpError {
-  errors?: ValidationError[]; 
+  errors?: ValidationError[];
 }
 
 interface CustomError {
@@ -19,14 +19,14 @@ export const errorHandler = (
   next: NextFunction
 ): void => {
   if (err instanceof HttpError) {
-    const httpError = err as CustomHttpError; 
+    const httpError = err as CustomHttpError;
 
     if (httpError.errors && Array.isArray(httpError.errors)) {
-      const validationErrors = httpError.errors as ValidationError[]; 
+      const validationErrors = httpError.errors as ValidationError[];
 
       const errors = validationErrors.map((e) => ({
         path: e.property,
-        message: Object.values(e.constraints || {})[0] 
+        message: Object.values(e.constraints || {})[0]
       }));
 
       res.status(httpError.httpCode || 500).json({
@@ -40,18 +40,13 @@ export const errorHandler = (
         message: httpError.message || 'Error'
       });
     }
-  }
-
-
-  else if ((err as CustomError).status) {
+  } else if ((err as CustomError).status) {
     res.status((err as CustomError).status || 500).json({
       status: (err as CustomError).status,
       message: (err as CustomError).message || 'Error',
       errors: (err as CustomError).errors || []
     });
-  }
-
-  else {
+  } else {
     res.status(500).json({ status: 500, message: 'Internal Server Error' });
   }
 };

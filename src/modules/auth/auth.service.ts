@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
 import { Logger } from '@/global';
-import { RegisterDto,  } from './dto/register';
+import { RegisterDto } from './dto/register';
 
 @Service()
 class AuthService {
