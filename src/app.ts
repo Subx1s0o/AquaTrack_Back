@@ -24,13 +24,13 @@ export const initializeApp = () => {
   useExpressServer(app, {
     cors: {
       origin: '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
+      methods: 'GET,PUT,PATCH,POST,DELETE'
     },
     controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
     defaultErrorHandler: false,
-    middlewares: [],
-    interceptors: [],
-    validation: true
+    validation: true,
+    // currentUserChecker:  () => {}, Імплементувати логіку діставання юзера сюди
+    // authorizationChecker: () => {} Імплементувати логіку перевірка авторизаційного токену сюди
   });
 
   app.use('*', notFoundHandler);
