@@ -1,5 +1,5 @@
 import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
-import { Logger } from '@/global';
+import { Logger } from '@/libs/global';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
 
 export abstract class AbstractRepository<TDocument extends Document> {

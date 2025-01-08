@@ -14,9 +14,9 @@ interface CustomError {
 
 export const errorHandler = (
   err: HttpError | CustomError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   if (err instanceof HttpError) {
     const httpError = err as CustomHttpError;

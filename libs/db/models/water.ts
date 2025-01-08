@@ -12,22 +12,22 @@ const waterSchema = new Schema<IWater>(
   {
     date: {
       type: String,
-      required: true,
+      required: true
     },
     volume: {
       type: Number,
-      required: true,
+      required: true
     },
     userId: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'users', 
-    },
+      ref: 'users'
+    }
   },
   {
-    timestamps: true, 
-    versionKey: false,
-  },
+    timestamps: true,
+    versionKey: false
+  }
 );
 
 export const WaterModel = model<IWater>('Water', waterSchema);

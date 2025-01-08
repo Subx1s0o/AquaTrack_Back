@@ -5,7 +5,7 @@ export const notFoundHandler = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): void => {
   if (!res.headersSent) {
     next(new NotFoundError('Not Found'));
   } else {
