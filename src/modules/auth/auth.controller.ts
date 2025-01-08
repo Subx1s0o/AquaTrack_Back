@@ -10,7 +10,7 @@ class AuthController {
 
   @Post('/register')
   @HttpCode(201)
-  async register(@Body() body: RegisterDto) {
+  async register(@Body() body: RegisterDto): Promise<RegisterDto> {
     const result = await this.authService.register(body);
     return result;
   }

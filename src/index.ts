@@ -1,8 +1,10 @@
 import 'reflect-metadata';
 import { initializeApp } from './app';
+import { initMongoDB } from '@/libs/db';
 
-function bootstrap() {
+async function bootstrap(): Promise<void> {
   initializeApp();
+  await initMongoDB();
 }
 
 bootstrap();

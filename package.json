@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --fix",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/src/index.js",
     "format": "prettier --write .",
-    "start": "nodemon -r --quiet tsconfig-paths/register ./src/index.ts"
+    "dev": "nodemon -r --quiet tsconfig-paths/register ./src/index.ts"
   },
   "keywords": [],
   "author": "Subx1s0o",
@@ -19,14 +22,20 @@
     "mongoose": "^8.9.3",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.10.4",
+    "routing-controllers-openapi": "^4.0.0",
     "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^9.17.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.4.2",
+    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   }
 }
