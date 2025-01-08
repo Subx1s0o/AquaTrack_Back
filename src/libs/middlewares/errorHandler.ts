@@ -40,12 +40,6 @@ export const errorHandler = (
         message: httpError.message || 'Error'
       });
     }
-  } else if ((err as CustomError).status) {
-    res.status((err as CustomError).status || 500).json({
-      status: (err as CustomError).status,
-      message: (err as CustomError).message || 'Error',
-      errors: (err as CustomError).errors || []
-    });
   } else {
     res.status(500).json({ status: 500, message: 'Internal Server Error' });
   }
