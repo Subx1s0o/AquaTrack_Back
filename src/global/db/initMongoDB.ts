@@ -3,8 +3,6 @@ import { Logger, ConfigService } from '@/global';
 import { useContainer, InternalServerError } from 'routing-controllers';
 import { Container } from 'typedi';
 
-  useContainer(Container);
-
   const config = Container.get(ConfigService);
   const logger = Container.get(Logger);
 
@@ -22,10 +20,6 @@ export const initMongoDB = async (): Promise<void> => {
     logger.log('Mongo connection successfully established!');
   } catch (e: unknown) {
     logger.error(`Error while setting up mongo connection, ${e}`);
-    if (e instanceof Error) {
-        throw new InternalServerError(`error: ${e.message}`);
-      } else {
-        throw new InternalServerError(`Unknown error: ${JSON.stringify(e)}`);
-      }
+    throw new InternalServerError(`Error while setting up mongo connection`);
   }
 };
