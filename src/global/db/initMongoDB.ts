@@ -19,7 +19,7 @@ export const initMongoDB = async (): Promise<void> => {
 
     logger.log('Mongo connection successfully established!');
   } catch (e: unknown) {
-    logger.error(`Error while setting up mongo connection, ${e}`);
+    logger.error(`Error while setting up mongo connection`);
     throw new InternalServerError(`Error while setting up mongo connection`);
   }
 };
