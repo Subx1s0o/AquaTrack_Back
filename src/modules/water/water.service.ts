@@ -5,8 +5,8 @@ import { EditWaterDTO } from './dto/editWater';
 import { DeleteWaterDTO } from './dto/deleteWater';
 import { GetDailyWaterDTO } from './dto/getDailyWater';
 import { GetMonthlyWaterDTO } from './dto/getMonthlyWater';
-import { WaterModel } from './../../../libs/db/models/water';
-import { IWater } from './../../../libs/db/models/water';
+import { WaterModel } from '@/libs/db/models/water';
+import { IWater } from '@/libs/db/models/water';
 import createHttpError from 'http-errors';
 
 @Service()

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode } from 'routing-controllers';
+import { Controller, Post, Body, Get, HttpCode, QueryParams } from 'routing-controllers';
 import { Service } from 'typedi';
 import WaterService from './water.service';
 import { AddWaterDTO } from './dto/addWater';
@@ -35,15 +35,19 @@ class WaterController {
 
   @Get('/daily')
   @HttpCode(200)
-  async getDailyWaterConsumption() {
-    const result = await this.waterConsumptionService.getDailyWaterConsumption();
+  async getDailyWaterConsumption(
+    @QueryParams() query: GetDailyWaterDTO 
+  ): Promise<{ totalVolume: number }> {
+    const result = await this.waterConsumptionService.getDailyWaterConsumption(query);
     return result;
   }
 
   @Get('/monthly')
   @HttpCode(200)
-  async getMonthlyWaterConsumption() {
-    const result = await this.waterConsumptionService.getMonthlyWaterConsumption();
+  async getMonthlyWaterConsumption(
+    @QueryParams() query: GetMonthlyWaterDTO 
+  ): Promise<{ totalVolume: number }> {
+    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(query);
     return result;
   }
 }
