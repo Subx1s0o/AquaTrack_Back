@@ -74,37 +74,42 @@ class WaterService {
     }
   }
 
-  async getDailyWaterConsumption(query: GetDailyWaterDTO): Promise<{ totalVolume: number }> {
+  async getDailyWaterConsumption(query: GetDailyWaterDTO): Promise<object[]> {
     this.logger.log('Fetching daily water consumption: ' + JSON.stringify(query));
     try {
       const { userId, date } = query;
-
-      const dailyConsumption = await WaterModel.aggregate([
-        { $match: { userId, date } },
-        { $group: { _id: null, totalVolume: { $sum: '$volume' } } }
-      ]);
-
+  
+      const dailyConsumption = await WaterModel.find({ userId, date }).select('volume date');
+  
       this.logger.log('Daily water consumption data retrieved successfully.');
-      return { totalVolume: dailyConsumption[0]?.totalVolume || 0 };
+      return dailyConsumption.map((record) => ({
+        date: record.date,
+        volume: record.volume,
+      }));
     } catch (err) {
       this.logger.log('Error while fetching daily water consumption: ' + err);
       throw createHttpError(500, 'Failed to fetch daily water consumption');
     }
   }
-
-
-  async getMonthlyWaterConsumption(query: GetMonthlyWaterDTO): Promise<{ totalVolume: number }> {
+  
+  async getMonthlyWaterConsumption(query: GetMonthlyWaterDTO): Promise<object[]> {
     this.logger.log('Fetching monthly water consumption: ' + JSON.stringify(query));
     try {
       const { userId, month, year } = query;
-
-      const monthlyConsumption = await WaterModel.aggregate([
-        { $match: { userId, date: { $gte: new Date(`${year}-${month}-01`), $lt: new Date(`${year}-${parseInt(month) + 1}-01`) } } },
-        { $group: { _id: null, totalVolume: { $sum: '$volume' } } }
-      ]);
-
+  
+      const startDate = new Date(`${year}-${month}-01`);
+      const endDate = new Date(`${year}-${parseInt(month) + 1}-01`);
+  
+      const monthlyConsumption = await WaterModel.find({
+        userId,
+        date: { $gte: startDate, $lt: endDate },
+      }).select('volume date');
+  
       this.logger.log('Monthly water consumption data retrieved successfully.');
-      return { totalVolume: monthlyConsumption[0]?.totalVolume || 0 };
+      return monthlyConsumption.map((record) => ({
+        date: record.date,
+        volume: record.volume,
+      }));
     } catch (err) {
       this.logger.log('Error while fetching monthly water consumption: ' + err);
       throw createHttpError(500, 'Failed to fetch monthly water consumption');
