@@ -16,7 +16,7 @@ export const initializeApp = (): express.Application => {
 
   const config = Container.get(ConfigService);
   const logger = Container.get(Logger);
-
+  Container.set('logger', logger);
   const PORT = config.get('PORT', '3000');
 
   app.use(express.json());

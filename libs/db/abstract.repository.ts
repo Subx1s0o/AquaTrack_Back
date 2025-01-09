@@ -1,12 +1,14 @@
 import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Logger } from '@/libs/global';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
+import Container, { Inject } from 'typedi';
 
 export abstract class AbstractRepository<TDocument extends Document> {
-  constructor(
-    protected model: Model<TDocument>,
-    private readonly logger: Logger
-  ) {}
+  protected logger: Logger;
+
+  constructor(protected model: Model<TDocument>) {
+    this.logger = Inject('logger')(Container);
+  }
 
   // Створення нового документа
   async create(document: Omit<TDocument, '_id'>): Promise<TDocument> {
@@ -35,7 +37,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
   async findOneAndUpdate(
     filter: FilterQuery<TDocument>,
     update: UpdateQuery<TDocument>
-  ): Promise<TDocument | null> {
+  ): Promise<TDocument> {
     const updatedDocument = await this.model
       .findOneAndUpdate(filter, update, { new: true })
       .lean()
@@ -60,9 +62,7 @@ export abstract class AbstractRepository<TDocument extends Document> {
   }
 
   // Видалення документа за ідентифікатором
-  async findOneAndDelete(
-    filter: FilterQuery<TDocument>
-  ): Promise<TDocument | null> {
+  async findOneAndDelete(filter: FilterQuery<TDocument>): Promise<TDocument> {
     const result = await this.model.findOneAndDelete(filter).lean().exec();
     if (result) {
       this.logger.log(
