@@ -26,7 +26,6 @@ class WaterController {
     return result;
   }
 
-  // Видалення запису про спожиту воду
   @Post('/delete')
   @HttpCode(200)
   async deleteWaterConsumption(@Body() body: DeleteWaterDTO) {
