@@ -39,9 +39,6 @@ class AuthController {
   @HttpCode(204)
   async logout(@Req() req: Request, @Res() res: Response): Promise<string> {
     const sessionId = req.cookies?.sessionId as string | undefined;
-    console.log(req.cookies);
-    console.log(req);
-    console.log(sessionId);
 
     if (!sessionId) {
       throw new UnauthorizedError('You are not logged in');

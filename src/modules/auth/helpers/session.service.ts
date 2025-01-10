@@ -1,5 +1,6 @@
 import { Service } from 'typedi';
 import { ISession, SessionModel } from '@/libs/db';
+import { BadRequestError } from 'routing-controllers';
 
 @Service()
 class SessionService {
@@ -14,11 +15,15 @@ class SessionService {
   }
 
   async findSession(sessionId: string): Promise<ISession | null> {
-    return await SessionModel.findOne({ sessionId });
+    return await SessionModel.findOne({ _id: sessionId });
   }
 
   async deleteSession(sessionId: string): Promise<void> {
-    await SessionModel.deleteOne({ sessionId });
+    try {
+      await SessionModel.deleteOne({ _id: sessionId });
+    } catch {
+      throw new BadRequestError('Unable to delete session');
+    }
   }
 }
 
