@@ -19,7 +19,7 @@ class WaterController {
   @Authorized()  
   async addWaterConsumption(
     @Body() body: AddWaterDTO,
-    @CurrentUser() user: IUser 
+    @CurrentUser({required: true}) user: IUser 
   ): Promise<IWater> {
     
     const result = await this.waterConsumptionService.addWaterConsumption({
@@ -35,7 +35,7 @@ class WaterController {
   @Authorized() 
   async editWaterConsumption(
     @Body() body: EditWaterDTO,
-    @CurrentUser() user: IUser 
+    @CurrentUser({required: true}) user: IUser 
   ): Promise<IWater | null> {
     if (body.userId.toString() !== user._id.toString()) {
       throw new Error('You cannot edit records that do not belong to you.');
@@ -51,7 +51,7 @@ class WaterController {
   @Authorized() 
   async deleteWaterConsumption(
     @Body() body: DeleteWaterDTO,
-    @CurrentUser() user: IUser 
+    @CurrentUser({required: true}) user: IUser 
   ): Promise<{ message: string }> {
     if (body.userId.toString() !== user._id.toString()) {
       throw new Error('You cannot delete records that do not belong to you.');
@@ -67,7 +67,7 @@ class WaterController {
   @Authorized() 
   async getDailyWaterConsumption(
     @Body() body: GetDailyWaterDTO, 
-    @CurrentUser() user: IUser 
+    @CurrentUser({required: true}) user: IUser 
   ): Promise<object[]> {
     body.userId = user._id; 
     const result = await this.waterConsumptionService.getDailyWaterConsumption(body);
@@ -79,7 +79,7 @@ class WaterController {
   @Authorized() 
   async getMonthlyWaterConsumption(
     @Body() body: GetMonthlyWaterDTO, 
-    @CurrentUser() user: IUser 
+    @CurrentUser({required: true}) user: IUser 
   ): Promise<object[]> {
     body.userId = user._id; 
     const result = await this.waterConsumptionService.getMonthlyWaterConsumption(body);

@@ -9,6 +9,7 @@ import { WaterRepository } from '@/libs/db/water.repository';
 import { IWater } from '@/libs/db/models/water';
 import { BadRequestError, NotFoundError } from 'routing-controllers';  
 import { UserRepository } from '@/libs/db/user.repository';
+import { Types } from 'mongoose';
 
 @Service()
 class WaterService {
@@ -20,8 +21,9 @@ class WaterService {
 
   async addWaterConsumption(body: AddWaterDTO): Promise<IWater> {
     this.logger.log('Adding water consumption record: ' + JSON.stringify(body));
+    const { userId, volume, date } = body;
     try {
-      const { userId, volume, date } = body;
+      
 
       const user = await this.userRepository.findOne({ _id: userId });
       if (!user) {
@@ -30,16 +32,16 @@ class WaterService {
       }
 
       const waterRecord = await this.waterRepository.create({
-        _id: userId,
+        userId: new Types.ObjectId(userId),
         volume,
         date,
-      });
+       });
 
       this.logger.log('Water consumption record added successfully.');
       return waterRecord;
     } catch (err) {
       this.logger.log('Error while adding water consumption record: ' + err);
-      throw new BadRequestError('Failed to add water consumption record');
+      throw new BadRequestError(`Failed to add water consumption record ${err}`);
     }
   }
 

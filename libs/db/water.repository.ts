@@ -14,7 +14,7 @@ export class WaterRepository {
       if (err.code === 11000) {
         throw new HttpError(409, 'Water record already exists');
       }
-      throw new BadRequestError('Error creating water consumption record.');
+      throw new BadRequestError(`Error creating water consumption record.${err}`);
     }
   }
 
@@ -49,7 +49,7 @@ export class WaterRepository {
 
       return waterRecords;
     } catch (err) {
-      throw new Error('Error fetching water consumption records');
+      throw new Error(`Error fetching water consumption records: ${err}`);
     }
   }
 
