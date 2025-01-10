@@ -60,7 +60,7 @@ class AuthController {
   ): Promise<{ accessToken: string }> {
     const sessionId = req.cookies?.sessionId as string | undefined;
     const refreshToken = req.cookies?.refreshToken as string | undefined;
-    console.log(sessionId, refreshToken);
+
     if (!sessionId || !refreshToken) {
       res.clearCookie('sessionId');
       res.clearCookie('refreshToken');
