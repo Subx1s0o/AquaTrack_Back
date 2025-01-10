@@ -1,4 +1,5 @@
 import { Service } from 'typedi';
+import { Body } from 'routing-controllers';
 import { Logger } from '@/libs/global';
 import { AddWaterDTO } from './dto/addWater';
 import { EditWaterDTO } from './dto/editWater';
@@ -8,6 +9,7 @@ import { GetMonthlyWaterDTO } from './dto/getMonthlyWater';
 import { WaterModel } from '@/libs/db/models/water';
 import { IWater } from '@/libs/db/models/water';
 import createHttpError from 'http-errors';
+import { UserModel } from '@/libs/db';
 
 @Service()
 class WaterService {
@@ -17,14 +19,19 @@ class WaterService {
     this.logger.log('Adding water consumption record: ' + JSON.stringify(body));
     try {
       const { userId, volume, date } = body;
-
-      const waterRecord = new WaterModel({
+  
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        this.logger.log('User not found with ID: ' + userId);
+        throw createHttpError(404, 'User not found');
+      }
+  
+      const waterRecord = await WaterModel.create({
         userId,
         volume,
         date,
       });
-
-      await waterRecord.save();
+  
       this.logger.log('Water consumption record added successfully.');
       return waterRecord;
     } catch (err) {
@@ -74,10 +81,10 @@ class WaterService {
     }
   }
 
-  async getDailyWaterConsumption(query: GetDailyWaterDTO): Promise<object[]> {
-    this.logger.log('Fetching daily water consumption: ' + JSON.stringify(query));
+  async getDailyWaterConsumption(@Body() body: GetDailyWaterDTO): Promise<object[]> {
+    this.logger.log('Fetching daily water consumption: ' + JSON.stringify(body));
     try {
-      const { userId, date } = query;
+      const { userId, date } = body;
   
       const dailyConsumption = await WaterModel.find({ userId, date }).select('volume date');
   
@@ -92,10 +99,10 @@ class WaterService {
     }
   }
   
-  async getMonthlyWaterConsumption(query: GetMonthlyWaterDTO): Promise<object[]> {
-    this.logger.log('Fetching monthly water consumption: ' + JSON.stringify(query));
+  async getMonthlyWaterConsumption(@Body() body: GetMonthlyWaterDTO): Promise<object[]> {
+    this.logger.log('Fetching monthly water consumption: ' + JSON.stringify(body));
     try {
-      const { userId, month, year } = query;
+      const { userId, month, year } = body;
   
       const startDate = new Date(`${year}-${month}-01`);
       const endDate = new Date(`${year}-${parseInt(month) + 1}-01`);
