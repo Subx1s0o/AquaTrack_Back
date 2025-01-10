@@ -6,6 +6,8 @@ import { configDotenv } from 'dotenv';
 import { errorHandler, notFoundHandler } from '../libs/middlewares';
 import { Logger, ConfigService } from '@/libs/global';
 import cookieParser from 'cookie-parser';
+import { authorizationChecker } from '@/libs/utils/authorizationChecker';
+import { userChecker } from '@/libs/utils/userChecker';
 configDotenv();
 console.clear();
 
@@ -30,9 +32,9 @@ export const initializeApp = (): express.Application => {
     },
     controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
     defaultErrorHandler: false,
-    validation: true
-    // currentUserChecker:  () => {}, Імплементувати логіку діставання юзера сюди
-    // authorizationChecker: () => {} Імплементувати логіку перевірка авторизаційного токену сюди
+    validation: true,
+    currentUserChecker: userChecker,
+    authorizationChecker: authorizationChecker
   });
 
   app.use('*', notFoundHandler);

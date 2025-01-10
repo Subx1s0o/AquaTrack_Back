@@ -8,7 +8,7 @@ export class UserRepository {
   async create(userData: Partial<IUser>): Promise<IUser> {
     try {
       const user = await UserModel.create(userData);
-      return user.toObject();
+      return JSON.parse(JSON.stringify(user));
     } catch (error) {
       const err = error as { code?: number; keyValue?: object };
       if (err.code === 11000) {
@@ -28,7 +28,7 @@ export class UserRepository {
     if (!result) {
       throw new NotFoundError(`User was not found to update it.`);
     }
-    return result;
+    return JSON.parse(JSON.stringify(result));
   }
 
   async findOne(filter: FilterQuery<IUser>): Promise<IUser> {
@@ -36,7 +36,7 @@ export class UserRepository {
     if (!user) {
       throw new NotFoundError(`User was not found.`);
     }
-    return user;
+    return JSON.parse(JSON.stringify(user));
   }
 
   async findAll(): Promise<IUser[]> {

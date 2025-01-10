@@ -12,17 +12,18 @@ export class AuthHelper {
   }
 
   validateAndDecodeToken(token: string): string {
-    const validatedToken = jwt.verify(token, this.jwtSecret);
-    if (!validatedToken) {
+    try {
+      jwt.verify(token, this.jwtSecret);
+
+      const decodedToken = jwt.decode(token) as { sub?: string } | null;
+      if (!decodedToken || !decodedToken.sub) {
+        throw new UnauthorizedError('Invalid token, send valid token');
+      }
+
+      return decodedToken.sub;
+    } catch {
       throw new UnauthorizedError('Invalid token, send valid token');
     }
-
-    const decodedToken = jwt.decode(token) as { sub?: string } | null;
-    if (!decodedToken || !decodedToken.sub) {
-      throw new UnauthorizedError('Invalid token, send valid token');
-    }
-
-    return decodedToken.sub;
   }
 
   generateToken(userId: string, expiresIn?: string): string {
