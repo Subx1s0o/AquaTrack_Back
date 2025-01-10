@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 
-// Інтерфейс для типізації користувача
 export interface IUser extends Document {
+  _id: string;
   email: string;
   password: string;
   name: string;
@@ -35,20 +35,21 @@ const userSchema = new Schema<IUser>(
     },
     weight: {
       type: Number,
-      required: true
+      required: false
     },
     activeTime: {
       type: Number,
-      required: true
+      required: false
     },
     gender: {
       type: String,
-      required: true,
+      required: false,
       enum: ['male', 'female']
     },
     dailyNorm: {
       type: Number,
-      required: true
+      required: false,
+      default: 1500
     }
   },
   {

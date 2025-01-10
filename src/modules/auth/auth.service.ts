@@ -1,14 +1,101 @@
 import { Service } from 'typedi';
-import { Logger } from '@/libs/global';
-import { RegisterDto } from './dto/register';
 
+import { RegisterDto } from './dto/register';
+import { AuthHelper } from './helpers/auth.helper';
+import { ISession } from '@/libs/db';
+import { UnauthorizedError } from 'routing-controllers';
+import bcrypt from 'bcrypt';
+import { LoginDto } from './dto/login';
+import SessionService from './helpers/session.service';
+import { Response } from 'express';
+import { LifeTime } from '@/libs/global/constants';
+import { UserRepository } from '../user.repository';
 @Service()
 class AuthService {
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly authHelper: AuthHelper,
+    private readonly userRepository: UserRepository,
+    private readonly sessionService: SessionService
+  ) {}
 
-  async register(body: RegisterDto): Promise<RegisterDto> {
-    this.logger.log('Registering user with data: ' + JSON.stringify(body));
-    return body;
+  async register(
+    res: Response,
+    body: RegisterDto
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const password = await bcrypt.hash(body.password, 10);
+    const user = await this.userRepository.create({ ...body, password });
+
+    const tokens = this.generateAccessAndRefreshToken(user._id);
+
+    const session = await this.sessionService.createSession({
+      userId: user._id,
+      refreshToken: tokens.refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    });
+
+    this.setupSession(res, session);
+
+    return tokens;
+  }
+
+  async login(
+    res: Response,
+    body: LoginDto
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.userRepository.findOne({ email: body.email });
+
+    if (!user) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
+
+    const isValidPassword = await bcrypt.compare(body.password, user.password);
+
+    if (!isValidPassword) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
+
+    const tokens = this.generateAccessAndRefreshToken(user._id);
+
+    const session = await this.sessionService.createSession({
+      userId: user._id,
+      refreshToken: tokens.refreshToken,
+      expiresAt: new Date(Date.now() + LifeTime.WEEK)
+    });
+
+    this.setupSession(res, session);
+
+    return tokens;
+  }
+
+  async logout(sessionId: string): Promise<void> {
+    return await this.sessionService.deleteSession(sessionId);
+  }
+
+  private generateAccessAndRefreshToken(userId: string): {
+    accessToken: string;
+    refreshToken: string;
+  } {
+    const accessToken = this.authHelper.generateToken(
+      userId,
+      LifeTime.TOKEN_HOUR
+    );
+    const refreshToken = this.authHelper.generateToken(
+      userId,
+      LifeTime.TOKEN_WEEK
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  private setupSession(res: Response, session: ISession): void {
+    res.cookie('refreshToken', session.refreshToken, {
+      httpOnly: true,
+      expires: new Date(Date.now() + LifeTime.WEEK)
+    });
+    res.cookie('sessionId', session._id, {
+      httpOnly: true,
+      expires: new Date(Date.now() + LifeTime.WEEK)
+    });
   }
 }
 

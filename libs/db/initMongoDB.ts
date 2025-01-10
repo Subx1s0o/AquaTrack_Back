@@ -10,7 +10,7 @@ export const initMongoDB = async (): Promise<void> => {
     const user: string = config.get('MONGODB_USER');
     const pwd: string = config.get('MONGODB_PASSWORD');
     const url: string = config.get('MONGODB_URL');
-    const db: string = config.get("MONGODB_DB")
+    const db: string = config.get('MONGODB_DB');
 
     await mongoose.connect(
       `mongodb+srv://${user}:${pwd}@${url}/${db}?retryWrites=true&w=majority`

@@ -7,19 +7,20 @@ export class ConfigService {
 
   get(key: string, defaultValue?: string): string {
     const value = process.env[key];
+
     if (value === undefined) {
-      if (defaultValue) {
+      if (defaultValue !== undefined) {
         this.logger.warn(
           `Environment variable "${key}" is not defined. Using default: "${defaultValue}"`
         );
         return defaultValue;
-      } else {
-        this.logger.error(
-          `Environment variable "${key}" is not defined and no default value is provided`
-        );
-        return '';
       }
+
+      const errorMessage = `Environment variable "${key}" is not defined and no default value is provided`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
-    return value;
+
+    return String(value);
   }
 }
