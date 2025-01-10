@@ -7,8 +7,8 @@ import { FilterQuery } from 'mongoose';
 export class UserRepository {
   async create(userData: Partial<IUser>): Promise<IUser> {
     try {
-      const createdUser = new UserModel(userData);
-      return await createdUser.save();
+      const user = await UserModel.create(userData);
+      return user.toObject();
     } catch (error) {
       const err = error as { code?: number; keyValue?: object };
       if (err.code === 11000) {
