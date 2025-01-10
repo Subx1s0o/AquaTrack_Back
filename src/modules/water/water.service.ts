@@ -9,7 +9,7 @@ import { GetMonthlyWaterDTO } from './dto/getMonthlyWater';
 import { WaterModel } from '@/libs/db/models/water';
 import { IWater } from '@/libs/db/models/water';
 import createHttpError from 'http-errors';
-import { UserRepository } from '@/libs/db/repository';
+import { UserRepository } from '@/libs/db/user.repository';
 
 
 @Service()
