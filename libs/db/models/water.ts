@@ -1,6 +1,7 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IWater extends Document {
+  _id: string;
   date: string;
   volume: number;
   userId: Types.ObjectId;
