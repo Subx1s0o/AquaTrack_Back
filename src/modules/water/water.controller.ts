@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode, QueryParams, Authorized, CurrentUser } from 'routing-controllers';
+import { Controller, Post, Body, Get, HttpCode, Authorized, CurrentUser } from 'routing-controllers';
 import { Service } from 'typedi';
 import WaterService from './water.service';
 import { AddWaterDTO } from './dto/addWater';
@@ -66,24 +66,23 @@ class WaterController {
   @HttpCode(200)
   @Authorized() 
   async getDailyWaterConsumption(
-    @QueryParams() query: GetDailyWaterDTO,
-    @CurrentUser() user: IUser
+    @Body() body: GetDailyWaterDTO, 
+    @CurrentUser() user: IUser 
   ): Promise<object[]> {
-    query.userId = user._id;
-    const result = await this.waterConsumptionService.getDailyWaterConsumption(query);
+    body.userId = user._id; 
+    const result = await this.waterConsumptionService.getDailyWaterConsumption(body);
     return result;
   }
 
-  
   @Get('/monthly')
   @HttpCode(200)
   @Authorized() 
   async getMonthlyWaterConsumption(
-    @QueryParams() query: GetMonthlyWaterDTO,
+    @Body() body: GetMonthlyWaterDTO, 
     @CurrentUser() user: IUser 
   ): Promise<object[]> {
-    query.userId = user._id; 
-    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(query);
+    body.userId = user._id; 
+    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(body);
     return result;
   }
 }
