@@ -2,7 +2,7 @@ import { Service } from 'typedi';
 
 import { RegisterDto } from './dto/register';
 import { AuthHelper } from './helpers/auth.helper';
-import { ISession } from '@/libs/db';
+import { ISession, IUser } from '@/libs/db';
 import { UnauthorizedError } from 'routing-controllers';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login';
@@ -21,9 +21,12 @@ class AuthService {
   async register(
     res: Response,
     body: RegisterDto
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const password = await bcrypt.hash(body.password, 10);
-    const user = await this.userRepository.create({ ...body, password });
+  ): Promise<{ user: Omit<IUser, 'password'>; accessToken: string }> {
+    const hashPassword = await bcrypt.hash(body.password, 10);
+    const user = await this.userRepository.create({
+      ...body,
+      password: hashPassword
+    });
 
     const tokens = this.generateAccessAndRefreshToken(user._id);
 
@@ -35,13 +38,19 @@ class AuthService {
 
     this.setupSession(res, session);
 
-    return tokens;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      user: JSON.parse(JSON.stringify(userWithoutPassword)),
+      accessToken: tokens.accessToken
+    };
   }
 
   async login(
     res: Response,
     body: LoginDto
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ user: Omit<IUser, 'password'>; accessToken: string }> {
     const user = await this.userRepository.findOne({ email: body.email });
 
     if (!user) {
@@ -64,11 +73,47 @@ class AuthService {
 
     this.setupSession(res, session);
 
-    return tokens;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      user: JSON.parse(JSON.stringify(userWithoutPassword)),
+      accessToken: tokens.accessToken
+    };
   }
 
   async logout(sessionId: string): Promise<void> {
     return await this.sessionService.deleteSession(sessionId);
+  }
+
+  async refresh(
+    res: Response,
+    sessionId: string,
+    refreshToken: string
+  ): Promise<{ accessToken: string }> {
+    const session = await this.sessionService.findSession(sessionId);
+
+    if (!session || session.refreshToken !== refreshToken) {
+      throw new UnauthorizedError('Invalid refresh token');
+    }
+
+    if (session.expiresAt < new Date()) {
+      throw new UnauthorizedError('Session expired');
+    }
+
+    await this.sessionService.deleteSession(sessionId);
+
+    await this.sessionService.createSession({
+      userId: session.userId,
+      refreshToken,
+      expiresAt: new Date(Date.now() + LifeTime.WEEK)
+    });
+
+    this.setupSession(res, session);
+
+    const tokens = this.generateAccessAndRefreshToken(session.userId);
+
+    return { accessToken: tokens.accessToken };
   }
 
   private generateAccessAndRefreshToken(userId: string): {
