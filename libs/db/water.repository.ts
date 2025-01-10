@@ -39,8 +39,18 @@ export class WaterRepository {
     return JSON.parse(JSON.stringify(water));
   }
 
-  async findAll(): Promise<IWater[]> {
-    return await WaterModel.find().lean().exec();
+  async findAll(filter: FilterQuery<IWater> = {}): Promise<IWater[]> {
+    try {
+      const waterRecords = await WaterModel.find(filter).lean().exec();
+
+      if (!waterRecords.length) {
+        throw new NotFoundError('No water consumption records found');
+      }
+
+      return waterRecords;
+    } catch (err) {
+      throw new Error('Error fetching water consumption records');
+    }
   }
 
   async deleteOne(filter: FilterQuery<IWater>): Promise<void> {

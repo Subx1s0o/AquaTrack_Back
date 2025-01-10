@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import { authorizationChecker } from '@/libs/utils/authorizationChecker';
 import { userChecker } from '@/libs/utils/userChecker';
 import AuthController from './modules/auth/auth.controller';
+import WaterController from './modules/water/water.controller';
 configDotenv();
 console.clear();
 
@@ -31,7 +32,7 @@ export const initializeApp = (): express.Application => {
       origin: '*',
       methods: 'GET,PUT,PATCH,POST,DELETE'
     },
-    controllers: [AuthController],
+    controllers: [AuthController, WaterController,],
     defaultErrorHandler: false,
     validation: true,
     currentUserChecker: userChecker,
