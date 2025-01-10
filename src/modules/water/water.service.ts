@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { Body } from 'routing-controllers';
+import { Body, NotFoundError } from 'routing-controllers';
 import { Logger } from '@/libs/global';
 import { AddWaterDTO } from './dto/addWater';
 import { EditWaterDTO } from './dto/editWater';
@@ -9,21 +9,22 @@ import { GetMonthlyWaterDTO } from './dto/getMonthlyWater';
 import { WaterModel } from '@/libs/db/models/water';
 import { IWater } from '@/libs/db/models/water';
 import createHttpError from 'http-errors';
-import { UserModel } from '@/libs/db';
+import { UserRepository } from '@/libs/db/repository';
+
 
 @Service()
 class WaterService {
-  constructor(private readonly logger: Logger) {}
+  constructor(private readonly logger: Logger,private readonly userRepository: UserRepository) {}
 
   async addWaterConsumption(body: AddWaterDTO): Promise<IWater> {
     this.logger.log('Adding water consumption record: ' + JSON.stringify(body));
     try {
       const { userId, volume, date } = body;
   
-      const user = await UserModel.findById(userId);
+      const user = await this.userRepository.findOne({_id: userId});
       if (!user) {
         this.logger.log('User not found with ID: ' + userId);
-        throw createHttpError(404, 'User not found');
+        throw new NotFoundError('User not found');
       }
   
       const waterRecord = await WaterModel.create({
