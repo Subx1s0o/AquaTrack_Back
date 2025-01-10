@@ -1,5 +1,5 @@
 import express from 'express';
-import path from 'path';
+
 import { useContainer, useExpressServer } from 'routing-controllers';
 import { Container } from 'typedi';
 import { configDotenv } from 'dotenv';
@@ -8,6 +8,7 @@ import { Logger, ConfigService } from '@/libs/global';
 import cookieParser from 'cookie-parser';
 import { authorizationChecker } from '@/libs/utils/authorizationChecker';
 import { userChecker } from '@/libs/utils/userChecker';
+import AuthController from './modules/auth/auth.controller';
 configDotenv();
 console.clear();
 
@@ -30,7 +31,7 @@ export const initializeApp = (): express.Application => {
       origin: '*',
       methods: 'GET,PUT,PATCH,POST,DELETE'
     },
-    controllers: [path.join(__dirname, './modules/**/*.controller.ts')],
+    controllers: [AuthController],
     defaultErrorHandler: false,
     validation: true,
     currentUserChecker: userChecker,
