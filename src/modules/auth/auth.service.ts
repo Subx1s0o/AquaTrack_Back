@@ -10,6 +10,7 @@ import SessionService from './helpers/session.service';
 import { Response } from 'express';
 import { LifeTime } from '@/libs/global/constants';
 import { UserRepository } from '../user.repository';
+
 @Service()
 class AuthService {
   constructor(
@@ -94,22 +95,26 @@ class AuthService {
     const session = await this.sessionService.findSession(sessionId);
 
     if (!session || session.refreshToken !== refreshToken) {
+      res.clearCookie('sessionId');
+      res.clearCookie('refreshToken');
       throw new UnauthorizedError('Invalid refresh token');
     }
 
     if (session.expiresAt < new Date()) {
+      res.clearCookie('sessionId');
+      res.clearCookie('refreshToken');
       throw new UnauthorizedError('Session expired');
     }
 
     await this.sessionService.deleteSession(sessionId);
 
-    await this.sessionService.createSession({
+    const newSession = await this.sessionService.createSession({
       userId: session.userId,
       refreshToken,
       expiresAt: new Date(Date.now() + LifeTime.WEEK)
     });
 
-    this.setupSession(res, session);
+    this.setupSession(res, newSession);
 
     const tokens = this.generateAccessAndRefreshToken(session.userId);
 
