@@ -13,10 +13,9 @@ import {
 import { Request } from 'express';
 import { Service } from 'typedi';
 import WaterService from './water.service';
-import { AddWaterDTO } from './dto/addWater';
-import { EditWaterDTO } from './dto/editWater';
 
 import { IWaterConsumption } from 'types/WaterConsumption';
+import { AddWaterDTO, EditWaterDTO } from './dto';
 
 @Service()
 @Controller('/water')

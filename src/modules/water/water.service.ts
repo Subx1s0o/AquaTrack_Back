@@ -1,11 +1,10 @@
 import { Service } from 'typedi';
 
-import { AddWaterDTO } from './dto/addWater';
-import { EditWaterDTO } from './dto/editWater';
-import { WaterRepository } from '@/libs/db/water.repository';
+import { AddWaterDTO, EditWaterDTO } from './dto';
+import { WaterRepository } from '@/repositories/water.repository';
 import { IWater } from '@/libs/db/models/water';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
-import { UserRepository } from '@/libs/db/user.repository';
+import { UserRepository } from '@/repositories/user.repository';
 import { IWaterConsumption } from 'types/WaterConsumption';
 
 @Service()

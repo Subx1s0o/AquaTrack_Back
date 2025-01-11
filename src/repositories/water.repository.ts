@@ -2,7 +2,7 @@ import { Service } from 'typedi';
 import { IWater, WaterModel } from '@/libs/db';
 import { NotFoundError, BadRequestError } from 'routing-controllers';
 import { FilterQuery } from 'mongoose';
-import { Logger } from '../global';
+import { Logger } from '@/libs/global';
 
 @Service()
 export class WaterRepository {
