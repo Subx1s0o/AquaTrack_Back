@@ -23,7 +23,6 @@ export function authorizationChecker(action: Action): boolean {
   if (!userId) {
     throw new UnauthorizedError('You are not logged in to do this');
   }
-
   action.request.userId = userId;
   return true;
 }

@@ -1,4 +1,4 @@
-import { Get } from 'routing-controllers';
+import { Get, Req } from 'routing-controllers';
 import {
   Controller,
   Patch,
@@ -19,10 +19,10 @@ class UsersController {
   @Patch('/')
   @Authorized()
   async updateMe(
-    @CurrentUser({ required: true }) user: IUser,
+    @Req() req: Request & { userId: string },
     @Body() body: UpdateUserDto
   ): Promise<IUser> {
-    return await this.usersService.updateUser(user._id, body);
+    return await this.usersService.updateUser(req.userId, body);
   }
   @Get('/')
   @Authorized()
