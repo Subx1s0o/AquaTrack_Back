@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpCode, Authorized,  Req, Param  } from 'routing-controllers';
+import { Controller, Post, Body, Get, HttpCode, Authorized,  Req, Param, Patch, Delete  } from 'routing-controllers';
 import { Request } from 'express';
 import { Service } from 'typedi';
 import WaterService from './water.service';
@@ -27,32 +27,26 @@ class WaterController {
 
 
 
-  @Post('/edit/:waterId')
+  @Patch('/:waterId')
   @HttpCode(200)
   @Authorized()
-  async editWaterConsumption(
-    @Param('waterId') waterId: string, 
-    @Body() body: EditWaterDTO,
-    @Req() req: Request & { userId: string } 
+  async editWaterRecord(
+    @Param('waterId') waterId: string,
+    @Body() body: Partial<EditWaterDTO>,
+    @Req() req: Request & { userId: string }
   ): Promise<IWater | null> {
-    const userId = req.userId; 
-  
-    const result = await this.waterConsumptionService.editWaterConsumption(body, waterId, userId);
-    return result;
+    return await this.waterConsumptionService.editWaterConsumptionPartial(body, waterId, req.userId);
   }
 
 
-  @Post('/delete/:waterId')
-  @HttpCode(200)
+  @Delete('/:waterId')
+  @HttpCode(204)
   @Authorized()
-  async deleteWaterConsumption(
-    @Param('waterId') waterId: string, 
+  async deleteWaterRecord(
+    @Param('waterId') waterId: string,
     @Req() req: Request & { userId: string }
   ): Promise<{ message: string }> {
-    const userId = req.userId;
-  
-    const result = await this.waterConsumptionService.deleteWaterConsumption(waterId, userId);
-    return result;
+    return await this.waterConsumptionService.deleteWaterConsumption(waterId, req.userId);
   }
 
   
