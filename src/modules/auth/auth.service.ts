@@ -9,20 +9,22 @@ import { LoginDto } from './dto/login';
 import SessionService from './helpers/session.service';
 import { Response } from 'express';
 import { LifeTime } from '@/libs/global/constants';
-import { UserRepository } from '../../../libs/db/user.repository';
+import { UserRepository } from '@/libs/db/user.repository';
+import { GoogleHelper } from './helpers/google.helper';
 
 @Service()
 class AuthService {
   constructor(
     private readonly authHelper: AuthHelper,
     private readonly userRepository: UserRepository,
-    private readonly sessionService: SessionService
+    private readonly sessionService: SessionService,
+    private readonly googleHelper: GoogleHelper
   ) {}
 
   async register(
     res: Response,
     body: RegisterDto
-  ): Promise<{ user: Omit<IUser, 'password'>; accessToken: string }> {
+  ): Promise<Omit<IUser, 'password'>> {
     const hashPassword = await bcrypt.hash(body.password, 10);
     const user = await this.userRepository.create({
       ...body,
@@ -37,21 +39,15 @@ class AuthService {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     });
 
-    this.setupSession(res, session);
+    this.setupResponseCookies(res, session, tokens.accessToken);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
 
-    return {
-      user: JSON.parse(JSON.stringify(userWithoutPassword)),
-      accessToken: tokens.accessToken
-    };
+    return JSON.parse(JSON.stringify(userWithoutPassword));
   }
 
-  async login(
-    res: Response,
-    body: LoginDto
-  ): Promise<{ user: Omit<IUser, 'password'>; accessToken: string }> {
+  async login(res: Response, body: LoginDto): Promise<Omit<IUser, 'password'>> {
     const user = await this.userRepository.findOne({ email: body.email });
 
     if (!user) {
@@ -72,15 +68,12 @@ class AuthService {
       expiresAt: new Date(Date.now() + LifeTime.WEEK)
     });
 
-    this.setupSession(res, session);
+    this.setupResponseCookies(res, session, tokens.accessToken);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
 
-    return {
-      user: JSON.parse(JSON.stringify(userWithoutPassword)),
-      accessToken: tokens.accessToken
-    };
+    return JSON.parse(JSON.stringify(userWithoutPassword));
   }
 
   async logout(sessionId: string): Promise<void> {
@@ -91,19 +84,23 @@ class AuthService {
     res: Response,
     sessionId: string,
     refreshToken: string
-  ): Promise<{ accessToken: string }> {
+  ): Promise<void> {
     const session = await this.sessionService.findSession(sessionId);
 
     if (!session || session.refreshToken !== refreshToken) {
       res.clearCookie('sessionId');
       res.clearCookie('refreshToken');
+      res.clearCookie('accessToken');
+
       throw new UnauthorizedError('Invalid refresh token');
     }
 
     if (session.expiresAt < new Date()) {
       res.clearCookie('sessionId');
       res.clearCookie('refreshToken');
-      throw new UnauthorizedError('Session expired');
+      res.clearCookie('accessToken');
+
+      throw new UnauthorizedError('Session expired, please log in again');
     }
 
     await this.sessionService.deleteSession(sessionId);
@@ -114,11 +111,56 @@ class AuthService {
       expiresAt: new Date(Date.now() + LifeTime.WEEK)
     });
 
-    this.setupSession(res, newSession);
+    const tokens = this.generateAccessAndRefreshToken(newSession.userId);
 
-    const tokens = this.generateAccessAndRefreshToken(session.userId);
+    this.setupResponseCookies(res, newSession, tokens.accessToken);
 
-    return { accessToken: tokens.accessToken };
+    return;
+  }
+
+  returnLink(): string {
+    return this.googleHelper.generateLink();
+  }
+
+  async loginGoogle(code: string, res: Response): Promise<void> {
+    const googleUser = await this.googleHelper.verify(code);
+
+    if (!googleUser) {
+      throw new UnauthorizedError('Invalid Google token');
+    }
+
+    try {
+      const existingUser = await this.userRepository.findOne({
+        email: googleUser.email
+      });
+      const tokens = this.generateAccessAndRefreshToken(existingUser._id);
+      const session = await this.sessionService.createSession({
+        userId: existingUser._id,
+        refreshToken: tokens.refreshToken,
+        expiresAt: new Date(Date.now() + LifeTime.WEEK)
+      });
+      this.setupResponseCookies(res, session, tokens.accessToken);
+
+      return;
+    } catch {
+      const hashPassword = await bcrypt.hash(googleUser.sub, 10);
+      const newUser = await this.userRepository.create({
+        email: googleUser.email,
+        name: googleUser.given_name,
+        avatarURL: googleUser.picture,
+        password: hashPassword
+      });
+
+      const tokens = this.generateAccessAndRefreshToken(newUser._id);
+      const session = await this.sessionService.createSession({
+        userId: newUser._id,
+        refreshToken: tokens.refreshToken,
+        expiresAt: new Date(Date.now() + LifeTime.WEEK)
+      });
+      this.setupResponseCookies(res, session, tokens.accessToken);
+
+      return;
+    }
   }
 
   private generateAccessAndRefreshToken(userId: string): {
@@ -137,7 +179,15 @@ class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private setupSession(res: Response, session: ISession): void {
+  private setupResponseCookies(
+    res: Response,
+    session: ISession,
+    accessToken: string
+  ): void {
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      expires: new Date(Date.now() + LifeTime.HOUR)
+    });
     res.cookie('refreshToken', session.refreshToken, {
       httpOnly: true,
       expires: new Date(Date.now() + LifeTime.WEEK)

@@ -19,11 +19,11 @@ class SessionService {
   }
 
   async deleteSession(sessionId: string): Promise<void> {
-    try {
-      await SessionModel.deleteOne({ _id: sessionId });
-    } catch {
+    const result = await SessionModel.findByIdAndDelete({ _id: sessionId });
+    if (!result) {
       throw new BadRequestError('Unable to delete session');
     }
+    return;
   }
 }
 
