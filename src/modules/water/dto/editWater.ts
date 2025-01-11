@@ -1,8 +1,8 @@
 import { IsString, IsNumber, IsDateString } from 'class-validator';
 
 export class EditWaterDTO {
-  @IsString()
-  userId!: string;
+  // @IsString()
+  // userId!: string;
 
   @IsDateString()
   date!: string;

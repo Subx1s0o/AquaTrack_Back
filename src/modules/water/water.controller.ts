@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, HttpCode, Authorized, CurrentUser } from 'routing-controllers';
+import { Controller, Post, Body, Get, HttpCode, Authorized, CurrentUser, Req, Param  } from 'routing-controllers';
+import { Request } from 'express';
 import { Service } from 'typedi';
 import WaterService from './water.service';
 import { AddWaterDTO } from './dto/addWater';
@@ -16,73 +17,74 @@ class WaterController {
 
   @Post('/add')
   @HttpCode(201)
-  @Authorized()  
+  @Authorized()
   async addWaterConsumption(
     @Body() body: AddWaterDTO,
-    @CurrentUser({required: true}) user: IUser 
+    @Req() req: Request & { userId: string } 
   ): Promise<IWater> {
+    const userId = req.userId;
+  
+    const result = await this.waterConsumptionService.addWaterConsumption(body, userId);
     
-    const result = await this.waterConsumptionService.addWaterConsumption({
-      ...body,
-      userId: user._id, 
-    });
     return result;
   }
 
 
-  @Post('/edit')
+
+  @Post('/edit/:waterId')
   @HttpCode(200)
-  @Authorized() 
+  @Authorized()
   async editWaterConsumption(
+    @Param('waterId') waterId: string, 
     @Body() body: EditWaterDTO,
-    @CurrentUser({required: true}) user: IUser 
+    @Req() req: Request & { userId: string } 
   ): Promise<IWater | null> {
-    if (body.userId.toString() !== user._id.toString()) {
-      throw new Error('You cannot edit records that do not belong to you.');
-    }
-
-    const result = await this.waterConsumptionService.editWaterConsumption(body);
+    const userId = req.userId; 
+  
+    const result = await this.waterConsumptionService.editWaterConsumption(body, waterId, userId);
     return result;
   }
 
 
-  @Post('/delete')
+  @Post('/delete/:waterId')
   @HttpCode(200)
-  @Authorized() 
+  @Authorized()
   async deleteWaterConsumption(
-    @Body() body: DeleteWaterDTO,
-    @CurrentUser({required: true}) user: IUser 
+    @Param('waterId') waterId: string, 
+    @Req() req: Request & { userId: string }
   ): Promise<{ message: string }> {
-    if (body.userId.toString() !== user._id.toString()) {
-      throw new Error('You cannot delete records that do not belong to you.');
-    }
-
-    const result = await this.waterConsumptionService.deleteWaterConsumption(body);
+    const userId = req.userId;
+  
+    const result = await this.waterConsumptionService.deleteWaterConsumption(waterId, userId);
     return result;
   }
 
   
-  @Get('/daily')
+  @Get('/daily/:yearMonthDay')
   @HttpCode(200)
-  @Authorized() 
+  @Authorized()
   async getDailyWaterConsumption(
-    @Body() body: GetDailyWaterDTO, 
-    @CurrentUser({required: true}) user: IUser 
+    @Param('yearMonthDay') yearMonthDay: string, 
+    @Req() req: Request & { userId: string } 
   ): Promise<object[]> {
-    body.userId = user._id; 
-    const result = await this.waterConsumptionService.getDailyWaterConsumption(body);
+    const userId = req.userId; 
+  
+    const result = await this.waterConsumptionService.getDailyWaterConsumption(yearMonthDay, userId);
     return result;
   }
 
-  @Get('/monthly')
+  @Get('/monthly/:yearMonth')
   @HttpCode(200)
-  @Authorized() 
+  @Authorized()
   async getMonthlyWaterConsumption(
-    @Body() body: GetMonthlyWaterDTO, 
-    @CurrentUser({required: true}) user: IUser 
+    @Param('yearMonth') yearMonth: string, 
+    @Req() req: Request & { userId: string }
   ): Promise<object[]> {
-    body.userId = user._id; 
-    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(body);
+    const userId = req.userId;
+  
+    const [year, month] = yearMonth.split('-');
+  
+    const result = await this.waterConsumptionService.getMonthlyWaterConsumption({ year, month, userId });
     return result;
   }
 }

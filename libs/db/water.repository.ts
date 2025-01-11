@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
 import { IWater, WaterModel } from '@/libs/db';
-import { NotFoundError, BadRequestError, HttpError } from 'routing-controllers';
+import { NotFoundError, BadRequestError } from 'routing-controllers';
 import { FilterQuery } from 'mongoose';
 
 @Service()
@@ -11,9 +11,6 @@ export class WaterRepository {
       return JSON.parse(JSON.stringify(water));
     } catch (error) {
       const err = error as { code?: number; keyValue?: object };
-      if (err.code === 11000) {
-        throw new HttpError(409, 'Water record already exists');
-      }
       throw new BadRequestError(`Error creating water consumption record.${err}`);
     }
   }
