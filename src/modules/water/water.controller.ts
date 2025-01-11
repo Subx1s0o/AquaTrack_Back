@@ -78,9 +78,9 @@ class WaterController {
   ): Promise<object[]> {
     const userId = req.userId;
   
-    const [year, month] = yearMonth.split('-');
-  
-    const result = await this.waterConsumptionService.getMonthlyWaterConsumption({ year, month, userId });
+    // Передаємо yearMonth та userId без поділу
+    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(yearMonth, userId);
+    
     return result;
   }
 }

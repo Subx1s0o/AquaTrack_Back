@@ -139,74 +139,70 @@ class WaterService {
     }
   }
 
-  async getMonthlyWaterConsumption({
-    year, 
-    month, 
-    userId
-  }: {
-    year: string;
-    month: string;
-    userId: string;
-  }): Promise<object[]> {
-    this.logger.log('Fetching monthly water consumption for year ' + year + ' and month ' + month);
-  
+  async getMonthlyWaterConsumption(yearMonth: string, userId: string): Promise<object[]> {
+    this.logger.log('Fetching monthly water consumption for yearMonth: ' + yearMonth);
+
     try {
-      
-      const startDate = new Date(`${year}-${month}-01`);
-      const endDate = new Date(`${year}-${parseInt(month) + 1}-01`);
-  
-      const monthlyConsumption = await this.waterRepository.findAll({
-        userId,
-        date: { $gte: startDate, $lt: endDate }
-      });
-  
-      if (monthlyConsumption.length === 0) {
-        throw new NotFoundError('No monthly water consumption found for the given period');
-      }
-  
-      const user = await this.userRepository.findOne({ _id: userId });
-      if (!user) {
-        throw new NotFoundError('User not found');
-      }
-  
-      const dailyNorm = user.dailyNorm; 
-  
-      
-      const consumptionStats = [];
-  
-      
-      for (let day = 1; day <= 31; day++) {
-        const currentDate = new Date(`${year}-${month}-${day}`);
-        if (currentDate.getMonth() + 1 !== parseInt(month)) continue; 
-  
-        
-        const dailyRecords = monthlyConsumption.filter((record) => {
-          const recordDate = new Date(record.date);
-          const recordYearMonth = `${recordDate.getFullYear()}-${(recordDate.getMonth() + 1).toString().padStart(2, '0')}`;
-          
-         
-          return recordYearMonth === `${year}-${month}`;
+        const [year, month] = yearMonth.split('-');
+
+        const startDate = new Date(`${year}-${month}-01`);
+        const endDate = new Date(`${year}-${parseInt(month) + 1}-01`);
+
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate.setUTCHours(0, 0, 0, 0);
+        endDate.setUTCDate(endDate.getUTCDate() - 1);
+
+        this.logger.log('Start date: ' + startDate);
+        this.logger.log('End date: ' + endDate);
+
+        const startDateString = startDate.toISOString().split('T')[0];
+        const endDateString = endDate.toISOString().split('T')[0];
+
+        const monthlyConsumption = await this.waterRepository.findAll({
+            userId,
+            date: { $gte: startDateString, $lte: endDateString }
         });
-  
-        const dailyTotalVolume = dailyRecords.reduce((total, record) => total + record.volume, 0);
-  
-        
-        const percentageConsumed = dailyNorm > 0 ? (dailyTotalVolume / dailyNorm) * 100 : 0;
-  
-       
-        consumptionStats.push({
-          date: currentDate.toISOString().split('T')[0], 
-          percentageConsumed: percentageConsumed.toFixed(2), 
-        });
-      }
-  
-      this.logger.log('Monthly water consumption data retrieved successfully.');
-      return consumptionStats;
+
+        if (monthlyConsumption.length === 0) {
+            throw new NotFoundError('No monthly water consumption found for the given period');
+        }
+
+        const user = await this.userRepository.findOne({ _id: userId });
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const dailyNorm = user.dailyNorm;
+
+        const consumptionStats = [];
+
+        for (let day = 1; day <= 31; day++) {
+            const currentDate = new Date(`${year}-${month}-${day}`);
+            if (currentDate.getMonth() + 1 !== parseInt(month)) continue; 
+            const currentDateString = currentDate.toISOString().split('T')[0];
+            const dailyRecords = monthlyConsumption.filter((record) => {
+                const recordDateString = new Date(record.date).toISOString().split('T')[0];
+                return recordDateString === currentDateString;
+            });
+
+            const dailyTotalVolume = dailyRecords.reduce((total, record) => total + record.volume, 0);
+
+            const percentageConsumed = dailyNorm > 0 ? (dailyTotalVolume / dailyNorm) * 100 : 0;
+            consumptionStats.push({
+                date: currentDateString,
+                percentageConsumed: percentageConsumed.toFixed(2), 
+            });
+        }
+
+        this.logger.log('Monthly water consumption data retrieved successfully.');
+        return consumptionStats;
     } catch (err) {
-      this.logger.log('Error while fetching monthly water consumption: ' + err);
-      throw new BadRequestError('Failed to fetch monthly water consumption');
+        this.logger.log('Error while fetching monthly water consumption: ' + JSON.stringify(err));
+        throw new BadRequestError('Failed to fetch monthly water consumption');
     }
-  }
+}
+
+  
 }
 
 export default WaterService;
