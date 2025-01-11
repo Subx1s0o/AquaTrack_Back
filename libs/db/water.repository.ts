@@ -2,16 +2,19 @@ import { Service } from 'typedi';
 import { IWater, WaterModel } from '@/libs/db';
 import { NotFoundError, BadRequestError } from 'routing-controllers';
 import { FilterQuery } from 'mongoose';
+import { Logger } from '../global';
 
 @Service()
 export class WaterRepository {
+  constructor(private readonly logger: Logger) {}
+
   async create(waterData: Partial<IWater>): Promise<IWater> {
     try {
-      const water = await WaterModel.create(waterData);
-      return JSON.parse(JSON.stringify(water));
+      const waterRecord = await WaterModel.create(waterData);
+      return JSON.parse(JSON.stringify(waterRecord));
     } catch (error) {
-      const err = error as { code?: number; keyValue?: object };
-      throw new BadRequestError(`Error creating water consumption record.${err}`);
+      this.logger.error(`Error creating water consumption record: ${error}`);
+      throw new BadRequestError('Error creating water consumption record.');
     }
   }
 
@@ -21,10 +24,18 @@ export class WaterRepository {
   ): Promise<IWater> {
     const result = await WaterModel.findOneAndUpdate(filter, data, {
       new: true
-    }).exec();
+    })
+      .lean()
+      .exec();
+
     if (!result) {
-      throw new NotFoundError(`Water consumption record was not found to update it.`);
+      this.logger.error(`Water consumption record not found to update it.`);
+      throw new NotFoundError(
+        `Water consumption record was not found to update it.`
+      );
     }
+
+    this.logger.log(`Water consumption record updated successfully`);
     return JSON.parse(JSON.stringify(result));
   }
 
@@ -40,21 +51,27 @@ export class WaterRepository {
     try {
       const waterRecords = await WaterModel.find(filter).lean().exec();
 
-      if (!waterRecords.length) {
-        throw new NotFoundError('No water consumption records found');
+      if (waterRecords.length === 0) {
+        return [];
       }
 
-      return waterRecords;
+      return waterRecords.map((record) => JSON.parse(JSON.stringify(record)));
     } catch (err) {
-      throw new Error(`Error fetching water consumption records: ${err}`);
+      this.logger.error(`Error fetching water consumption records: ${err}`);
+      throw new NotFoundError(`Error fetching water consumption records`);
     }
   }
 
   async deleteOne(filter: FilterQuery<IWater>): Promise<void> {
     const result = await WaterModel.findOneAndDelete(filter).exec();
+
     if (!result) {
-      throw new NotFoundError(`Water consumption record was not found to delete it.`);
+      this.logger.log(`Water consumption record not found to delete it.`);
+      throw new NotFoundError(
+        `Water consumption record was not found to delete it.`
+      );
     }
+    this.logger.log(`Water consumption record deleted successfully`);
     return;
   }
 }

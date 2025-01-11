@@ -8,7 +8,7 @@ export class UserRepository {
   async create(userData: Partial<IUser>): Promise<IUser> {
     try {
       const user = await UserModel.create(userData);
-      return JSON.parse(JSON.stringify(user));
+      return user.toObject();
     } catch (error) {
       const err = error as { code?: number; keyValue?: object };
       if (err.code === 11000) {
@@ -24,11 +24,13 @@ export class UserRepository {
   ): Promise<IUser> {
     const result = await UserModel.findOneAndUpdate(filter, data, {
       new: true
-    }).exec();
+    })
+      .lean()
+      .exec();
     if (!result) {
       throw new NotFoundError(`User was not found to update it.`);
     }
-    return JSON.parse(JSON.stringify(result));
+    return result;
   }
 
   async findOne(filter: FilterQuery<IUser>): Promise<IUser> {
@@ -36,7 +38,7 @@ export class UserRepository {
     if (!user) {
       throw new NotFoundError(`User was not found.`);
     }
-    return JSON.parse(JSON.stringify(user));
+    return user;
   }
 
   async findAll(): Promise<IUser[]> {

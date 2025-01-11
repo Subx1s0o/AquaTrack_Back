@@ -1,10 +1,22 @@
-import { Controller, Post, Body, Get, HttpCode, Authorized,  Req, Param, Patch, Delete  } from 'routing-controllers';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  HttpCode,
+  Authorized,
+  Req,
+  Param,
+  Patch,
+  Delete
+} from 'routing-controllers';
 import { Request } from 'express';
 import { Service } from 'typedi';
 import WaterService from './water.service';
 import { AddWaterDTO } from './dto/addWater';
 import { EditWaterDTO } from './dto/editWater';
-import { IWater } from '@/libs/db/models/water';
+
+import { IWaterConsumption } from 'types/WaterConsumption';
 
 @Service()
 @Controller('/water')
@@ -16,16 +28,17 @@ class WaterController {
   @Authorized()
   async addWaterConsumption(
     @Body() body: AddWaterDTO,
-    @Req() req: Request & { userId: string } 
-  ): Promise<IWater> {
+    @Req() req: Request & { userId: string }
+  ): Promise<Omit<IWaterConsumption, 'userId'>> {
     const userId = req.userId;
-  
-    const result = await this.waterConsumptionService.addWaterConsumption(body, userId);
-    
+
+    const result = await this.waterConsumptionService.addWaterConsumption(
+      body,
+      userId
+    );
+
     return result;
   }
-
-
 
   @Patch('/:waterId')
   @HttpCode(200)
@@ -34,10 +47,13 @@ class WaterController {
     @Param('waterId') waterId: string,
     @Body() body: Partial<EditWaterDTO>,
     @Req() req: Request & { userId: string }
-  ): Promise<IWater | null> {
-    return await this.waterConsumptionService.editWaterConsumptionPartial(body, waterId, req.userId);
+  ): Promise<Omit<IWaterConsumption, 'userId'> | null> {
+    return await this.waterConsumptionService.editWaterConsumptionPartial(
+      body,
+      waterId,
+      req.userId
+    );
   }
-
 
   @Delete('/:waterId')
   @HttpCode(204)
@@ -45,38 +61,38 @@ class WaterController {
   async deleteWaterRecord(
     @Param('waterId') waterId: string,
     @Req() req: Request & { userId: string }
-  ): Promise<{ message: string }> {
-    return await this.waterConsumptionService.deleteWaterConsumption(waterId, req.userId);
+  ): Promise<void> {
+    return await this.waterConsumptionService.deleteWaterConsumption(
+      waterId,
+      req.userId
+    );
   }
 
-  
-  @Get('/:yearMonthDay')
+  @Get('/daily/:date')
   @HttpCode(200)
   @Authorized()
   async getDailyWaterConsumption(
-    @Param('yearMonthDay') yearMonthDay: string, 
-    @Req() req: Request & { userId: string } 
-  ): Promise<object[]> {
-    const userId = req.userId; 
-  
-    const result = await this.waterConsumptionService.getDailyWaterConsumption(yearMonthDay, userId);
-    return result;
+    @Param('date') date: string,
+    @Req() req: Request & { userId: string }
+  ): Promise<IWaterConsumption[]> {
+    return await this.waterConsumptionService.getDailyWaterConsumption(
+      date,
+      req.userId
+    );
   }
 
-  @Get('/:yearMonth')
-  @HttpCode(200)
-  @Authorized()
-  async getMonthlyWaterConsumption(
-    @Param('yearMonth') yearMonth: string, 
-    @Req() req: Request & { userId: string }
-  ): Promise<object[]> {
-    const userId = req.userId;
-  
-    // Передаємо yearMonth та userId без поділу
-    const result = await this.waterConsumptionService.getMonthlyWaterConsumption(yearMonth, userId);
-    
-    return result;
-  }
+  // @Get('/:yearMonth')
+  // @HttpCode(200)
+  // @Authorized()
+  // async getMonthlyWaterConsumption(
+  //   @Param('yearMonth') yearMonth: string,
+  //   @Req() req: Request & { userId: string }
+  // ): Promise<Omit<'userId', IWater>> {
+  //   return await this.waterConsumptionService.getMonthlyWaterConsumption(
+  //     yearMonth,
+  //     req.userId
+  //   );
+  // }
 }
 
 export default WaterController;
