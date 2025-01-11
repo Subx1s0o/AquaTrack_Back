@@ -11,7 +11,7 @@ import { IWater } from '@/libs/db/models/water';
 class WaterController {
   constructor(private readonly waterConsumptionService: WaterService) {}
 
-  @Post('/add')
+  @Post('/')
   @HttpCode(201)
   @Authorized()
   async addWaterConsumption(
@@ -50,7 +50,7 @@ class WaterController {
   }
 
   
-  @Get('/daily/:yearMonthDay')
+  @Get('/:yearMonthDay')
   @HttpCode(200)
   @Authorized()
   async getDailyWaterConsumption(
@@ -63,7 +63,7 @@ class WaterController {
     return result;
   }
 
-  @Get('/monthly/:yearMonth')
+  @Get('/:yearMonth')
   @HttpCode(200)
   @Authorized()
   async getMonthlyWaterConsumption(
