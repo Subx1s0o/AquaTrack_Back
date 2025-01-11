@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsNumber, IsDateString } from 'class-validator';
 
 export class AddWaterDTO {
   // @IsString()

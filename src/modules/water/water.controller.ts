@@ -1,14 +1,10 @@
-import { Controller, Post, Body, Get, HttpCode, Authorized, CurrentUser, Req, Param  } from 'routing-controllers';
+import { Controller, Post, Body, Get, HttpCode, Authorized,  Req, Param  } from 'routing-controllers';
 import { Request } from 'express';
 import { Service } from 'typedi';
 import WaterService from './water.service';
 import { AddWaterDTO } from './dto/addWater';
 import { EditWaterDTO } from './dto/editWater';
-import { DeleteWaterDTO } from './dto/deleteWater';
-import { GetDailyWaterDTO } from './dto/getDailyWater';
-import { GetMonthlyWaterDTO } from './dto/getMonthlyWater';
 import { IWater } from '@/libs/db/models/water';
-import { IUser } from '@/libs/db/models/user'; 
 
 @Service()
 @Controller('/water')
