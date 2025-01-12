@@ -47,7 +47,6 @@ class UsersController {
   async getMe(@CurrentUser({ required: true }) user: IUser): Promise<IUser> {
     return user;
   }
-
   @Post('/avatar')
   @Authorized()
   async uploadAvatar(
