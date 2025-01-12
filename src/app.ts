@@ -1,6 +1,10 @@
 import express from 'express';
 
-import { getMetadataArgsStorage, useContainer, useExpressServer } from 'routing-controllers';
+import {
+  getMetadataArgsStorage,
+  useContainer,
+  useExpressServer
+} from 'routing-controllers';
 import { Container } from 'typedi';
 import { configDotenv } from 'dotenv';
 import { errorHandler, notFoundHandler } from '../libs/middlewares';
@@ -15,10 +19,19 @@ import * as swaggerUiExpress from 'swagger-ui-express';
 
 configDotenv();
 console.clear();
-const { defaultMetadataStorage } = require('class-transformer/cjs/storage')
+
 const routingControllersOptions = {
-  controllers: [AuthController]
-}
+  cors: {
+    credentials: true,
+    origin: '*',
+    methods: 'GET,PUT,PATCH,POST,DELETE'
+  },
+  controllers: [AuthController],
+  defaultErrorHandler: false,
+  validation: true,
+  currentUserChecker: userChecker,
+  authorizationChecker: authorizationChecker
+};
 
 export const initializeApp = (): express.Application => {
   const app = express();
@@ -33,52 +46,27 @@ export const initializeApp = (): express.Application => {
   app.use(express.json());
   app.use(cookieParser());
 
-  useExpressServer(app, {
-    cors: {
-      credentials: true,
-      origin: '*',
-      methods: 'GET,PUT,PATCH,POST,DELETE'
-    },
-    controllers: [AuthController],
-    defaultErrorHandler: false,
-    validation: true,
-    currentUserChecker: userChecker,
-    authorizationChecker: authorizationChecker
-  });
+  useExpressServer(app, routingControllersOptions);
 
-  // Parse class-validator classes into JSON Schema
   const schemas = validationMetadatasToSchemas({
-    classTransformerMetadataStorage: defaultMetadataStorage,
-    refPointerPrefix: '#/components/schemas/',
-  });
+    refPointerPrefix: '#/components/schemas/'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
 
-
-  // Parse routing-controllers classes into OpenAPI spec
   const storage = getMetadataArgsStorage();
   const spec = routingControllersToSpec(storage, routingControllersOptions, {
     components: {
-      schemas,
-      securitySchemes: {
-        basicAuth: {
-          scheme: 'basic',
-          type: 'http',
-        },
-      },
+      schemas
     },
     info: {
       description: 'Generated with `routing-controllers-openapi`',
       title: 'API Documentation',
-      version: '1.0.0',
-    },
+      version: '1.0.0'
+    }
   });
 
-  // Serve Swagger UI
- app.use('/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec))
-
-// Render spec on root:
-app.get('/', (_req, res) => {
-  res.json(spec)
-})
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  app.use('/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));
 
   app.use('*', notFoundHandler);
   app.use(errorHandler);

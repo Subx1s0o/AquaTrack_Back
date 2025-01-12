@@ -1,5 +1,4 @@
 import {
-  Controller,
   Post,
   Body,
   HttpCode,
@@ -7,7 +6,8 @@ import {
   Get,
   Req,
   UnauthorizedError,
-  QueryParam
+  QueryParam,
+  JsonController
 } from 'routing-controllers';
 import { Service } from 'typedi';
 import AuthService from './auth.service';
@@ -19,7 +19,7 @@ import { ConfigService } from '@/libs/global';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 
 @Service()
-@Controller('/auth')
+@JsonController('/auth')
 class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -29,24 +29,24 @@ class AuthController {
   @Post('/register')
   @HttpCode(201)
   @OpenAPI({
-  summary: 'Register a new user',
-  description: 'Creates a new user account',
-  requestBody: {
-    description: 'User registration data',
-    required: true,
-    content: {
-      'application/json': {
-        schema: { $ref: '#/components/schemas/RegisterDto' },
-      },
+    summary: 'Register a new user',
+    description: 'Creates a new user account',
+    requestBody: {
+      description: 'User registration data',
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/RegisterDto' }
+        }
+      }
     },
-  },
-  responses: {
-    201: {
-      description: 'User registered successfully',
-    },
-  },
-})
-@ResponseSchema(RegisterDto)
+    responses: {
+      201: {
+        description: 'User registered successfully'
+      }
+    }
+  })
+  @ResponseSchema(RegisterDto)
   async register(
     @Res() res: Response,
     @Body() body: RegisterDto
@@ -63,17 +63,18 @@ class AuthController {
       required: true,
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/LoginDto' },
-        },
-      },
+          schema: { $ref: '#/components/schemas/LoginDto' }
+        }
+      }
     },
     responses: {
       200: {
-        description: 'User logged in successfully',
-      },
-    },
+        description: 'User logged in successfully'
+      }
+    }
   })
   @ResponseSchema(LoginDto)
+  @HttpCode(200)
   async login(
     @Res() res: Response,
     @Body() body: LoginDto
@@ -87,13 +88,14 @@ class AuthController {
     description: 'Logs out the user by clearing their session and tokens.',
     responses: {
       204: {
-        description: 'User logged out successfully',
+        description: 'User logged out successfully'
       },
       401: {
-        description: 'User not logged in',
-      },
-    },
+        description: 'User not logged in'
+      }
+    }
   })
+  @HttpCode(204)
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
     const sessionId = req.cookies?.sessionId as string | undefined;
 
@@ -108,7 +110,7 @@ class AuthController {
     res.clearCookie('sessionId');
     res.clearCookie('refreshToken');
     res.clearCookie('accessToken');
-    res.status(204).end();
+    return;
   }
 
   @Post('/refresh')
@@ -117,13 +119,14 @@ class AuthController {
     description: 'Generates a new set of access and refresh tokens.',
     responses: {
       204: {
-        description: 'Tokens refreshed successfully',
+        description: 'Tokens refreshed successfully'
       },
       401: {
-        description: 'User not logged in',
-      },
-    },
+        description: 'User not logged in'
+      }
+    }
   })
+  @HttpCode(204)
   async refresh(@Res() res: Response, @Req() req: Request): Promise<void> {
     const sessionId = req.cookies?.sessionId as string | undefined;
     const refreshToken = req.cookies?.refreshToken as string | undefined;
@@ -136,8 +139,7 @@ class AuthController {
       throw new UnauthorizedError('You are not logged in');
     }
 
-    await this.authService.refresh(res, sessionId, refreshToken);
-    res.status(204).end();
+    return await this.authService.refresh(res, sessionId, refreshToken);
   }
 
   @Get('/google')
@@ -146,10 +148,11 @@ class AuthController {
     description: 'Redirects the user to the Google authentication page.',
     responses: {
       302: {
-        description: 'Redirect to Google login',
-      },
-    },
+        description: 'Redirect to Google login'
+      }
+    }
   })
+  @HttpCode(302)
   googleRedirect(@Res() res: Response): void {
     res.redirect(this.authService.returnLink());
   }
@@ -157,22 +160,24 @@ class AuthController {
   @Get('/google/callback')
   @OpenAPI({
     summary: 'Google authentication callback',
-    description: 'Handles the Google authentication callback and logs the user in.',
+    description:
+      'Handles the Google authentication callback and logs the user in.',
     parameters: [
       {
         name: 'code',
         in: 'query',
         required: true,
         description: 'Google authorization code',
-        schema: { type: 'string' },
-      },
+        schema: { type: 'string' }
+      }
     ],
     responses: {
       302: {
-        description: 'Redirect to frontend after login',
-      },
-    },
+        description: 'Redirect to frontend after login'
+      }
+    }
   })
+  @HttpCode(302)
   async googleCallback(
     @QueryParam('code') code: string,
     @Res() res: Response
