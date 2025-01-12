@@ -19,6 +19,12 @@ export class WaterConsumptionHelper {
     }
   }
 
+  private ensureDateSet(): void {
+    if (!this.timestamp) {
+      throw new Error('Date is not set. Use setDate() first.');
+    }
+  }
+
   /**
    * Обчислює межі місяця (початок, кінець) та кількість днів у місяці.
    * @returns Об'єкт із датами початку, кінця місяця та кількістю днів у місяці.
@@ -76,23 +82,20 @@ export class WaterConsumptionHelper {
     amount: number;
     percentage: number;
   }[] {
-    if (!this.timestamp) {
-      throw new Error('Date is not set. Use setDate() first.');
-    }
+    this.ensureDateSet();
+    const currentDate = new Date(
+      Date.UTC(this.timestamp.getUTCFullYear(), this.timestamp.getUTCMonth(), 1)
+    );
 
-    return Array.from({ length: lastDayOfMonth }, (_, i) => ({
-      date: this.formatDate(
-        new Date(
-          Date.UTC(
-            this.timestamp.getUTCFullYear(),
-            this.timestamp.getUTCMonth(),
-            i + 1
-          )
-        )
-      ),
-      amount: 0,
-      percentage: 0
-    }));
+    return Array.from({ length: lastDayOfMonth }, () => {
+      const result = {
+        date: this.formatDate(currentDate),
+        amount: 0,
+        percentage: 0
+      };
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+      return result;
+    });
   }
 
   /**
@@ -108,17 +111,18 @@ export class WaterConsumptionHelper {
       { amount: number; date: string; percent: number }
     > = {};
 
-    records.forEach(({ date, amount, percentage }) => {
-      const day = new Date(date).getUTCDate();
-      const dateFormatted = this.formatDate(new Date(date));
+    for (const { date, amount, percentage } of records) {
+      const recordDate = new Date(date);
+      const day = recordDate.getUTCDate();
+      const formattedDate = this.formatDate(recordDate);
 
       if (!groupedByDate[day]) {
-        groupedByDate[day] = { amount: 0, date: dateFormatted, percent: 0 };
+        groupedByDate[day] = { amount: 0, date: formattedDate, percent: 0 };
       }
 
       groupedByDate[day].amount += amount;
       groupedByDate[day].percent += percentage;
-    });
+    }
 
     return groupedByDate;
   }
@@ -136,9 +140,7 @@ export class WaterConsumptionHelper {
       { amount: number; date: string; percent: number }
     >
   ): { date: string; amount: number; percentage: number }[] {
-    if (!this.timestamp) {
-      throw new Error('Date is not set. Use setDate() first.');
-    }
+    this.ensureDateSet();
 
     return Array.from({ length: lastDayOfMonth }, (_, i) => {
       const day = i + 1;
@@ -159,7 +161,7 @@ export class WaterConsumptionHelper {
       return {
         date: dayData.date,
         amount: dayData.amount,
-        percentage: parseFloat(dayData.percent.toFixed(2))
+        percentage: parseFloat(dayData.percent.toFixed())
       };
     });
   }

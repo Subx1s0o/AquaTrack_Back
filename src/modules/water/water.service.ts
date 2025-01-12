@@ -13,20 +13,6 @@ class WaterService {
     private readonly waterConsumptionHelper: WaterConsumptionHelper
   ) {}
 
-  private async checkRecordExists(
-    waterId: string,
-    userId: string
-  ): Promise<IWater> {
-    const existingRecord = await this.waterRepository.findOne({
-      _id: waterId,
-      userId
-    });
-    if (!existingRecord) {
-      throw new NotFoundError('Record not found for the given waterId');
-    }
-    return existingRecord;
-  }
-
   async addWaterConsumption(
     body: AddWaterDTO,
     userId: string
@@ -50,14 +36,13 @@ class WaterService {
     waterId: string,
     userId: string
   ): Promise<Omit<IWaterConsumption, 'userId'> | null> {
-    const existingRecord = await this.checkRecordExists(waterId, userId);
     const updateFields: Partial<Omit<IWater, 'userId'>> = {};
 
     for (const key in body) {
       if (body.hasOwnProperty(key)) {
         const typedKey = key as keyof EditWaterDTO;
 
-        if (typedKey in existingRecord) {
+        if (typedKey in updateFields) {
           updateFields[typedKey as keyof Omit<IWater, 'userId'>] = body[
             typedKey
           ] as IWater[keyof IWater];
@@ -71,23 +56,17 @@ class WaterService {
 
     const updatedRecord = await this.waterRepository.updateOne(
       { _id: waterId, userId },
-      updateFields
+      { ...updateFields }
     );
-
-    if (!updatedRecord) {
-      throw new NotFoundError('Failed to update the water consumption record');
-    }
 
     return updatedRecord;
   }
 
   async deleteWaterConsumption(waterId: string, userId: string): Promise<void> {
-    const existingRecord = await this.checkRecordExists(waterId, userId);
-    if (existingRecord.userId.toString() !== userId) {
-      throw new BadRequestError('You can only delete your own records');
-    }
-
-    return await this.waterRepository.deleteOne({ _id: waterId, userId });
+    await this.waterRepository.deleteOne({
+      _id: waterId,
+      userId
+    });
   }
 
   async getDailyWaterConsumption(
@@ -107,16 +86,15 @@ class WaterService {
     const filteredRecords = dailyConsumption.filter(
       (record) => record.date === date
     );
-    const totalPercentage = filteredRecords.reduce(
-      (total, record) => total + record.percentage,
-      0
-    );
+    const totalPercentage = filteredRecords
+      .reduce((total, record) => total + record.percentage, 0)
+      .toFixed();
 
     return filteredRecords.map((record) => ({
       _id: record._id,
       date: record.date,
       amount: record.amount,
-      percentage: totalPercentage
+      percentage: +totalPercentage
     }));
   }
 
