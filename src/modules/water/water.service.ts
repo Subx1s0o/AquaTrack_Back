@@ -17,11 +17,12 @@ class WaterService {
     body: AddWaterDTO,
     userId: string
   ): Promise<Omit<IWaterConsumption, 'userId'>> {
-    const { amount, date, dailyNorm } = body;
+    const { amount, date, dailyNorm, time } = body;
     const percentage = (amount / dailyNorm) * 100;
     const waterRecord = await this.waterRepository.create({
       userId,
       amount,
+      time,
       date,
       percentage: +percentage.toFixed()
     });
@@ -94,6 +95,7 @@ class WaterService {
       _id: record._id,
       date: record.date,
       amount: record.amount,
+      time: record.time,
       percentage: +totalPercentage
     }));
   }
