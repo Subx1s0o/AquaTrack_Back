@@ -19,10 +19,8 @@ export class AuthHelper {
       if (!decodedToken || !decodedToken.sub) {
         throw new UnauthorizedError('Invalid token, send valid token');
       }
-
       return decodedToken.sub;
-    } catch (error) {
-      console.log(error);
+    } catch {
       throw new UnauthorizedError('Invalid token, send valid token');
     }
   }
