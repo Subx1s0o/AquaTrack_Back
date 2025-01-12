@@ -14,18 +14,19 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from '@/libs/db/models/user';
 import multer from 'multer';
 import CloudinaryUtil from '@/libs/utils/cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { createCloudinaryStorage } from 'multer-storage-cloudinary';
 import { Container } from 'typedi';
+import { Params } from '@/libs/utils/cloudinary.types';
 
 const cloudinary = Container.get(CloudinaryUtil).getInstance();
 
-const storage = new CloudinaryStorage({
+const storage = createCloudinaryStorage({
   cloudinary,
   params: {
     folder: 'user_avatars',
     allowed_formats: ['jpg', 'jpeg', 'png'],
     transformation: [{ width: 500, height: 500, crop: 'limit' }]
-  }
+  } as Params
 });
 const upload = multer({ storage });
 @Service()
