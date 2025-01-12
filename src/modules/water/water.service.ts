@@ -4,14 +4,13 @@ import { AddWaterDTO, EditWaterDTO } from './dto';
 import { WaterRepository } from '@/repositories/water.repository';
 import { IWater } from '@/libs/db/models/water';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
-import { UserRepository } from '@/repositories/user.repository';
 import { IWaterConsumption } from 'types/WaterConsumption';
-
+import { WaterConsumptionHelper } from './helpers/water-consumption.helper';
 @Service()
 class WaterService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly waterRepository: WaterRepository
+    private readonly waterRepository: WaterRepository,
+    private readonly waterConsumptionHelper: WaterConsumptionHelper
   ) {}
 
   private async checkRecordExists(
@@ -99,17 +98,15 @@ class WaterService {
       userId,
       date
     });
-
     if (!dailyConsumption) {
       throw new NotFoundError(
         'No daily water consumption found for the given date'
       );
     }
 
-    const filteredRecords = dailyConsumption.filter((record) => {
-      return record.date === date;
-    });
-
+    const filteredRecords = dailyConsumption.filter(
+      (record) => record.date === date
+    );
     const totalPercentage = filteredRecords.reduce(
       (total, record) => total + record.percentage,
       0
@@ -123,66 +120,32 @@ class WaterService {
     }));
   }
 
-  // async getMonthlyWaterConsumption(
-  //   yearMonth: string,
-  //   userId: string
-  // ): Promise<object[]> {
-  //   const [year, month] = yearMonth.split('-');
-  //   const startDate = new Date(`${year}-${month}-01`);
-  //   const endDate = new Date(`${year}-${parseInt(month) + 1}-01`);
+  async getMonthlyWaterConsumption(
+    date: string,
+    userId: string
+  ): Promise<IWaterConsumption[]> {
+    this.waterConsumptionHelper.setDate(date);
+    const { startOfMonth, endOfMonth, lastDayOfMonth } =
+      this.waterConsumptionHelper.getMonthBoundaries();
 
-  //   startDate.setUTCHours(0, 0, 0, 0);
-  //   endDate.setUTCHours(0, 0, 0, 0);
-  //   endDate.setUTCDate(endDate.getUTCDate() - 1);
+    const perDay = await this.waterRepository.findAll({
+      userId,
+      date: {
+        $gte: startOfMonth.toISOString(),
+        $lte: endOfMonth.toISOString()
+      }
+    });
 
-  //   const startDateString = startDate.toISOString().split('T')[0];
-  //   const endDateString = endDate.toISOString().split('T')[0];
+    if (!perDay || perDay.length === 0) {
+      return this.waterConsumptionHelper.createEmptyMonthlyData(lastDayOfMonth);
+    }
 
-  //   const monthlyConsumption = await this.waterRepository.findAll({
-  //     userId,
-  //     date: { $gte: startDateString, $lte: endDateString }
-  //   });
-
-  //   if (monthlyConsumption.length === 0) {
-  //     throw new NotFoundError(
-  //       'No monthly water consumption found for the given period'
-  //     );
-  //   }
-
-  //   const user = await this.userRepository.findOne({ _id: userId });
-  //   if (!user) {
-  //     throw new NotFoundError('User not found');
-  //   }
-
-  //   const dailyNorm = user.dailyNorm;
-  //   const consumptionStats = [];
-
-  //   for (let day = 1; day <= 31; day++) {
-  //     const currentDate = new Date(`${year}-${month}-${day}`);
-  //     if (currentDate.getMonth() + 1 !== parseInt(month)) continue;
-  //     const currentDateString = currentDate.toISOString().split('T')[0];
-  //     const dailyRecords = monthlyConsumption.filter((record) => {
-  //       const recordDateString = new Date(record.date)
-  //         .toISOString()
-  //         .split('T')[0];
-  //       return recordDateString === currentDateString;
-  //     });
-
-  //     const dailyTotalVolume = dailyRecords.reduce(
-  //       (total, record) => total + record.volume,
-  //       0
-  //     );
-  //     const percentageConsumed =
-  //       dailyNorm > 0 ? (dailyTotalVolume / dailyNorm) * 100 : 0;
-
-  //     consumptionStats.push({
-  //       date: currentDateString,
-  //       percentageConsumed: percentageConsumed.toFixed(2)
-  //     });
-  //   }
-
-  //   return consumptionStats;
-  // }
+    const groupedByDate = this.waterConsumptionHelper.groupRecords(perDay);
+    return this.waterConsumptionHelper.generateResult(
+      lastDayOfMonth,
+      groupedByDate
+    );
+  }
 }
 
 export default WaterService;

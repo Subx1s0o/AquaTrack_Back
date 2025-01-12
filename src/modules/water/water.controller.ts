@@ -40,7 +40,6 @@ class WaterController {
   }
 
   @Patch('/:waterId')
-  @HttpCode(200)
   @Authorized()
   async editWaterRecord(
     @Param('waterId') waterId: string,
@@ -67,8 +66,7 @@ class WaterController {
     );
   }
 
-  @Get('/daily/:date')
-  @HttpCode(200)
+  @Get('/day/:date')
   @Authorized()
   async getDailyWaterConsumption(
     @Param('date') date: string,
@@ -80,18 +78,17 @@ class WaterController {
     );
   }
 
-  // @Get('/:yearMonth')
-  // @HttpCode(200)
-  // @Authorized()
-  // async getMonthlyWaterConsumption(
-  //   @Param('yearMonth') yearMonth: string,
-  //   @Req() req: Request & { userId: string }
-  // ): Promise<Omit<'userId', IWater>> {
-  //   return await this.waterConsumptionService.getMonthlyWaterConsumption(
-  //     yearMonth,
-  //     req.userId
-  //   );
-  // }
+  @Get('/month/:date')
+  @Authorized()
+  async getMonthlyWaterConsumption(
+    @Param('date') date: string,
+    @Req() req: Request & { userId: string }
+  ): Promise<IWaterConsumption[]> {
+    return await this.waterConsumptionService.getMonthlyWaterConsumption(
+      date,
+      req.userId
+    );
+  }
 }
 
 export default WaterController;
