@@ -74,7 +74,6 @@ class AuthController {
     }
   })
   @ResponseSchema(LoginDto)
-  @HttpCode(200)
   async login(
     @Res() res: Response,
     @Body() body: LoginDto
@@ -95,7 +94,6 @@ class AuthController {
       }
     }
   })
-  @HttpCode(204)
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
     const sessionId = req.cookies?.sessionId as string | undefined;
 
@@ -110,7 +108,7 @@ class AuthController {
     res.clearCookie('sessionId');
     res.clearCookie('refreshToken');
     res.clearCookie('accessToken');
-    return;
+    res.status(204).end();
   }
 
   @Post('/refresh')
@@ -126,7 +124,6 @@ class AuthController {
       }
     }
   })
-  @HttpCode(204)
   async refresh(@Res() res: Response, @Req() req: Request): Promise<void> {
     const sessionId = req.cookies?.sessionId as string | undefined;
     const refreshToken = req.cookies?.refreshToken as string | undefined;
@@ -139,7 +136,8 @@ class AuthController {
       throw new UnauthorizedError('You are not logged in');
     }
 
-    return await this.authService.refresh(res, sessionId, refreshToken);
+    await this.authService.refresh(res, sessionId, refreshToken);
+    res.status(204).end();
   }
 
   @Get('/google')
@@ -152,7 +150,6 @@ class AuthController {
       }
     }
   })
-  @HttpCode(302)
   googleRedirect(@Res() res: Response): void {
     res.redirect(this.authService.returnLink());
   }
@@ -177,7 +174,6 @@ class AuthController {
       }
     }
   })
-  @HttpCode(302)
   async googleCallback(
     @QueryParam('code') code: string,
     @Res() res: Response
