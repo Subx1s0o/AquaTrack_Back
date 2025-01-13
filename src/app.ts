@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import { authorizationChecker } from '@/libs/utils/authorizationChecker';
 import { userChecker } from '@/libs/utils/userChecker';
 import AuthController from './modules/auth/auth.controller';
+import WaterController from './modules/water/water.controller';
 import UsersController from './modules/users/users.controller';
 configDotenv();
 console.clear();
@@ -20,7 +21,7 @@ export const initializeApp = (): express.Application => {
 
   const config = Container.get(ConfigService);
   const logger = Container.get(Logger);
-
+  Container.set('logger', logger);
   const PORT = config.get('PORT', '3000');
 
   app.use(express.json());
@@ -32,7 +33,7 @@ export const initializeApp = (): express.Application => {
       origin: '*',
       methods: 'GET,PUT,PATCH,POST,DELETE'
     },
-    controllers: [AuthController, UsersController],
+    controllers: [AuthController, WaterController, UsersController],
     defaultErrorHandler: false,
     validation: true,
     currentUserChecker: userChecker,
