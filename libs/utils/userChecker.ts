@@ -1,4 +1,4 @@
-import { UserRepository } from '@/repositories/user.repository';
+import { UserRepository } from '@/modules/users/user.repository';
 import { Action, UnauthorizedError } from 'routing-controllers';
 import Container from 'typedi';
 import { IUser } from '../db';
