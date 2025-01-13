@@ -71,7 +71,7 @@ class WaterController {
   async getDailyWaterConsumption(
     @Param('date') date: string,
     @Req() req: Request & { userId: string }
-  ): Promise<IWaterConsumption[]> {
+  ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
     return await this.waterConsumptionService.getDailyWaterConsumption(
       date,
       req.userId
@@ -83,7 +83,7 @@ class WaterController {
   async getMonthlyWaterConsumption(
     @Param('date') date: string,
     @Req() req: Request & { userId: string }
-  ): Promise<IWaterConsumption[]> {
+  ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
     return await this.waterConsumptionService.getMonthlyWaterConsumption(
       date,
       req.userId

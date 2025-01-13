@@ -5,7 +5,6 @@ export interface IWater extends Document {
   date: string;
   amount: number;
   userId: string;
-  percentage: number;
   time: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -18,10 +17,6 @@ const waterSchema = new Schema<IWater>(
     },
     userId: {
       type: String,
-      required: true
-    },
-    percentage: {
-      type: Number,
       required: true
     },
     amount: {

@@ -1,3 +1,4 @@
+import { IWaterConsumption } from '@/types/WaterConsumption';
 import { Service } from 'typedi';
 
 /**
@@ -78,24 +79,28 @@ export class WaterConsumptionHelper {
    * @returns Масив об'єктів із датою, кількістю (0) та відсотком (0).
    */
   createEmptyMonthlyData(lastDayOfMonth: number): {
-    date: string;
-    amount: number;
-    percentage: number;
-  }[] {
+    records: IWaterConsumption[];
+    totalPercentage: number;
+  } {
     this.ensureDateSet();
     const currentDate = new Date(
       Date.UTC(this.timestamp.getUTCFullYear(), this.timestamp.getUTCMonth(), 1)
     );
 
-    return Array.from({ length: lastDayOfMonth }, () => {
-      const result = {
-        date: this.formatDate(currentDate),
-        amount: 0,
-        percentage: 0
-      };
-      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
-      return result;
-    });
+    const records: IWaterConsumption[] = Array.from(
+      { length: lastDayOfMonth },
+      () => {
+        const result = {
+          date: this.formatDate(currentDate),
+          amount: 0,
+          totalPercentage: 0
+        };
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+        return result;
+      }
+    );
+
+    return { records, totalPercentage: 0 };
   }
 
   /**
@@ -104,24 +109,35 @@ export class WaterConsumptionHelper {
    * @returns Об'єкт, де ключі - це дні місяця, а значення - сума даних для цього дня.
    */
   groupRecords(
-    records: { amount: number; date: string; percentage: number }[]
-  ): Record<number, { amount: number; date: string; percent: number }> {
+    records: { amount: number; date: string }[],
+    dailyNorm: number
+  ): Record<number, { amount: number; date: string; totalPercentage: number }> {
     const groupedByDate: Record<
       number,
-      { amount: number; date: string; percent: number }
+      { amount: number; date: string; totalPercentage: number }
     > = {};
 
-    for (const { date, amount, percentage } of records) {
+    for (const { date, amount } of records) {
       const recordDate = new Date(date);
       const day = recordDate.getUTCDate();
       const formattedDate = this.formatDate(recordDate);
 
       if (!groupedByDate[day]) {
-        groupedByDate[day] = { amount: 0, date: formattedDate, percent: 0 };
+        groupedByDate[day] = {
+          amount: 0,
+          date: formattedDate,
+          totalPercentage: 0
+        };
       }
 
       groupedByDate[day].amount += amount;
-      groupedByDate[day].percent += percentage;
+
+      groupedByDate[day].totalPercentage =
+        (groupedByDate[day].amount / dailyNorm) * 100;
+
+      groupedByDate[day].totalPercentage = parseFloat(
+        groupedByDate[day].totalPercentage.toFixed(2)
+      );
     }
 
     return groupedByDate;
@@ -137,12 +153,13 @@ export class WaterConsumptionHelper {
     lastDayOfMonth: number,
     groupedByDate: Record<
       number,
-      { amount: number; date: string; percent: number }
+      { amount: number; date: string; totalPercentage: number }
     >
-  ): { date: string; amount: number; percentage: number }[] {
+  ): { records: IWaterConsumption[]; totalPercentage: number } {
     this.ensureDateSet();
 
-    return Array.from({ length: lastDayOfMonth }, (_, i) => {
+    let totalPercentage = 0;
+    const records = Array.from({ length: lastDayOfMonth }, (_, i) => {
       const day = i + 1;
       const dayData = groupedByDate[day] || {
         amount: 0,
@@ -155,14 +172,18 @@ export class WaterConsumptionHelper {
             )
           )
         ),
-        percent: 0
+        totalPercentage: 0
       };
+
+      totalPercentage += dayData.totalPercentage;
 
       return {
         date: dayData.date,
         amount: dayData.amount,
-        percentage: parseFloat(dayData.percent.toFixed())
+        totalPercentage: dayData.totalPercentage
       };
     });
+
+    return { records, totalPercentage };
   }
 }

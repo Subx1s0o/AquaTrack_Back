@@ -6,11 +6,13 @@ import { IWater } from '@/libs/db/models/water';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
 import { IWaterConsumption } from 'types/WaterConsumption';
 import { WaterConsumptionHelper } from './helpers/water-consumption.helper';
+import { UserRepository } from '../users/user.repository';
 @Service()
 class WaterService {
   constructor(
     private readonly waterRepository: WaterRepository,
-    private readonly waterConsumptionHelper: WaterConsumptionHelper
+    private readonly waterConsumptionHelper: WaterConsumptionHelper,
+    private readonly userRepository: UserRepository
   ) {}
 
   async addWaterConsumption(
@@ -18,18 +20,17 @@ class WaterService {
     userId: string
   ): Promise<Omit<IWaterConsumption, 'userId'>> {
     const { amount, date, dailyNorm, time } = body;
-    const percentage = (amount / dailyNorm) * 100;
+    const percentage = +((amount / dailyNorm) * 100).toFixed();
     const waterRecord = await this.waterRepository.create({
       userId,
       amount,
       time,
-      date,
-      percentage: +percentage.toFixed()
+      date
     });
 
     const { userId: _, ...recordWithoutUserId } = waterRecord;
 
-    return recordWithoutUserId;
+    return { ...recordWithoutUserId, percentage };
   }
 
   async editWaterConsumptionPartial(
@@ -69,44 +70,56 @@ class WaterService {
       userId
     });
   }
-
   async getDailyWaterConsumption(
     date: string,
     userId: string
-  ): Promise<IWaterConsumption[]> {
+  ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
     const dailyConsumption = await this.waterRepository.findAll({
       userId,
       date
     });
-    if (!dailyConsumption) {
+
+    const dailyNorm = await this.userRepository
+      .findOne({ _id: userId })
+      .then((user) => user.dailyNorm);
+
+    if (!dailyConsumption || dailyConsumption.length === 0) {
       throw new NotFoundError(
         'No daily water consumption found for the given date'
       );
     }
 
-    const filteredRecords = dailyConsumption.filter(
-      (record) => record.date === date
+    const totalAmount = dailyConsumption.reduce(
+      (sum, record) => sum + record.amount,
+      0
     );
-    const totalPercentage = filteredRecords
-      .reduce((total, record) => total + record.percentage, 0)
-      .toFixed();
 
-    return filteredRecords.map((record) => ({
-      _id: record._id,
-      date: record.date,
-      amount: record.amount,
-      time: record.time,
-      percentage: +totalPercentage
+    const totalPercentage = ((totalAmount / dailyNorm) * 100).toFixed(2);
+
+    const consumptionWithPercentage = dailyConsumption.map((record) => ({
+      ...record,
+      percentage: parseFloat(((record.amount / dailyNorm) * 100).toFixed(2))
     }));
+
+    return {
+      totalPercentage: parseFloat(totalPercentage),
+      records: consumptionWithPercentage
+    };
   }
 
   async getMonthlyWaterConsumption(
     date: string,
     userId: string
-  ): Promise<IWaterConsumption[]> {
+  ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
     this.waterConsumptionHelper.setDate(date);
     const { startOfMonth, endOfMonth, lastDayOfMonth } =
       this.waterConsumptionHelper.getMonthBoundaries();
+
+    const dailyNorm = await this.userRepository
+      .findOne({
+        _id: userId
+      })
+      .then((user) => user.dailyNorm);
 
     const perDay = await this.waterRepository.findAll({
       userId,
@@ -120,11 +133,13 @@ class WaterService {
       return this.waterConsumptionHelper.createEmptyMonthlyData(lastDayOfMonth);
     }
 
-    const groupedByDate = this.waterConsumptionHelper.groupRecords(perDay);
-    return this.waterConsumptionHelper.generateResult(
-      lastDayOfMonth,
-      groupedByDate
+    const groupedByDate = this.waterConsumptionHelper.groupRecords(
+      perDay,
+      dailyNorm
     );
+    const { records, totalPercentage } =
+      this.waterConsumptionHelper.generateResult(lastDayOfMonth, groupedByDate);
+    return { records, totalPercentage };
   }
 }
 
