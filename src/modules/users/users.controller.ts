@@ -23,7 +23,7 @@ class UsersController {
   async updateMe(
     @Req() req: Request & { userId: string },
     @Body() body: UpdateUserDto
-  ): Promise<IUser> {
+  ) {
     return await this.usersService.updateUser(req.userId, body);
   }
   @Get('/')
@@ -37,7 +37,7 @@ class UsersController {
   async uploadAvatar(
     @Req() req: Request & { userId: string },
     @UploadedFile('file', { options: upload }) file: Express.Multer.File
-  ): Promise<IUser> {
+  ) {
     const updatedUser = await this.usersService.updateUser(req.userId, {
       avatarURL: file.path
     });

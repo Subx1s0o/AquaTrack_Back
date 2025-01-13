@@ -30,7 +30,7 @@ export class UserRepository {
     if (!result) {
       throw new NotFoundError(`User was not found to update it.`);
     }
-    return result;
+    return JSON.parse(JSON.stringify(result));
   }
 
   async findOne(filter: FilterQuery<IUser>): Promise<IUser> {
