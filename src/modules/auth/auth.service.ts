@@ -41,8 +41,7 @@ class AuthService {
 
     this.setupResponseCookies(res, session, tokens.accessToken);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = user;
 
     return JSON.parse(JSON.stringify(userWithoutPassword));
   }
@@ -70,8 +69,7 @@ class AuthService {
 
     this.setupResponseCookies(res, session, tokens.accessToken);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = user;
 
     return JSON.parse(JSON.stringify(userWithoutPassword));
   }
