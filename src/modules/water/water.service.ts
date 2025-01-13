@@ -1,7 +1,7 @@
 import { Service } from 'typedi';
 
 import { AddWaterDTO, EditWaterDTO } from './dto';
-import { WaterRepository } from '@/repositories/water.repository';
+import { WaterRepository } from '@/modules/water/water.repository';
 import { IWater } from '@/libs/db/models/water';
 import { BadRequestError, NotFoundError } from 'routing-controllers';
 import { IWaterConsumption } from 'types/WaterConsumption';
