@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { UserRepository } from '@/libs/db/user.repository';
+import { UserRepository } from '@/modules/users/user.repository';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from '@/libs/db/models/user';
 
