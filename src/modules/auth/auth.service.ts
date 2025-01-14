@@ -184,15 +184,18 @@ class AuthService {
   ): void {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + LifeTime.HOUR)
+      expires: new Date(Date.now() + LifeTime.HOUR),
+      sameSite: 'none'
     });
     res.cookie('refreshToken', session.refreshToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + LifeTime.WEEK)
+      expires: new Date(Date.now() + LifeTime.WEEK),
+      sameSite: 'none'
     });
     res.cookie('sessionId', session._id, {
       httpOnly: true,
-      expires: new Date(Date.now() + LifeTime.WEEK)
+      expires: new Date(Date.now() + LifeTime.WEEK),
+      sameSite: 'none'
     });
   }
 }
