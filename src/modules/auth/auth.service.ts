@@ -185,17 +185,20 @@ class AuthService {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       expires: new Date(Date.now() + LifeTime.HOUR),
-      sameSite: 'none'
+      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production'
     });
     res.cookie('refreshToken', session.refreshToken, {
       httpOnly: true,
       expires: new Date(Date.now() + LifeTime.WEEK),
-      sameSite: 'none'
+      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production'
     });
     res.cookie('sessionId', session._id, {
       httpOnly: true,
       expires: new Date(Date.now() + LifeTime.WEEK),
-      sameSite: 'none'
+      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production'
     });
   }
 }
