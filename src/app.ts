@@ -16,6 +16,8 @@ import AuthController from './modules/auth/auth.controller';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import * as swaggerUiExpress from 'swagger-ui-express';
+import UsersController from './modules/users/users.controller';
+import WaterController from './modules/water/water.controller';
 
 configDotenv();
 console.clear();
@@ -26,7 +28,7 @@ const routingControllersOptions = {
     origin: '*',
     methods: 'GET,PUT,PATCH,POST,DELETE'
   },
-  controllers: [AuthController],
+  controllers: [AuthController, UsersController, WaterController],
   defaultErrorHandler: false,
   validation: true,
   currentUserChecker: userChecker,
@@ -56,13 +58,21 @@ export const initializeApp = (): express.Application => {
   const storage = getMetadataArgsStorage();
   const spec = routingControllersToSpec(storage, routingControllersOptions, {
     components: {
-      schemas
+      schemas,
+      securitySchemes: {
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'SESSIONID', 
+        },
+      },
     },
     info: {
       description: 'Generated with `routing-controllers-openapi`',
       title: 'API Documentation',
       version: '1.0.0'
-    }
+    },
+    security: [{ cookieAuth: [] }], 
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
