@@ -30,7 +30,7 @@ export const initializeApp = (): express.Application => {
   useExpressServer(app, {
     cors: {
       credentials: true,
-      origin: '*',
+      origin: ['http://localhost:3000', config.get('FRONTEND_LINK')],
       methods: 'GET,PUT,PATCH,POST,DELETE'
     },
     controllers: [AuthController, WaterController, UsersController],
