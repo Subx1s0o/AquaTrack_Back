@@ -9,7 +9,7 @@ import { LoginDto } from './dto/login';
 import SessionService from './helpers/session.service';
 import { Response } from 'express';
 import { LifeTime } from '@/libs/global/constants';
-import { UserRepository } from '@/libs/db/user.repository';
+import { UserRepository } from '@/modules/users/user.repository';
 import { GoogleHelper } from './helpers/google.helper';
 
 @Service()
@@ -41,8 +41,7 @@ class AuthService {
 
     this.setupResponseCookies(res, session, tokens.accessToken);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = user;
 
     return JSON.parse(JSON.stringify(userWithoutPassword));
   }
@@ -70,8 +69,7 @@ class AuthService {
 
     this.setupResponseCookies(res, session, tokens.accessToken);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = user;
 
     return JSON.parse(JSON.stringify(userWithoutPassword));
   }

@@ -60,3 +60,4 @@ const userSchema = new Schema<IUser>(
 );
 
 export const UserModel = model<IUser>('users', userSchema);
+export type IWaterPlain = Omit<IUser, keyof Document>;

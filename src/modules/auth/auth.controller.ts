@@ -181,9 +181,8 @@ class AuthController {
     await this.authService.loginGoogle(code, res);
 
     const frontEndUrl = this.config.get('FRONTEND_LINK');
-    const frontEndLink = `${frontEndUrl}/google`;
 
-    res.redirect(frontEndLink);
+    res.redirect(frontEndUrl);
   }
 }
 

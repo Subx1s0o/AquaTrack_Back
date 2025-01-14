@@ -10,7 +10,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@/libs/*": ["./libs/*"]
+      "@/libs/*": ["./libs/*"],
+      "@/types/*": ["./types/*"]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
