@@ -4,9 +4,7 @@ import {
   HttpCode,
   Res,
   Get,
-  Req,
   UnauthorizedError,
-  QueryParam,
   JsonController
 } from 'routing-controllers';
 import { Service } from 'typedi';
@@ -14,8 +12,6 @@ import AuthService from './auth.service';
 import { RegisterDto } from './dto/register';
 import { Response } from 'express';
 import { LoginDto } from './dto/login';
-import { IUser } from '@/libs/db';
-import { ConfigService } from '@/libs/global';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 
 import { IAuthResponse } from '@/types/authResponse';
