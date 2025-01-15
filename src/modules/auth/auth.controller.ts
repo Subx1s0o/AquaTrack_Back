@@ -103,7 +103,6 @@ class AuthController {
       }
     }
   })
-
   async refresh(
     @Body() { refreshToken, sessionId }: RefreshDto
   ): Promise<{ accessToken: string; refreshToken: string; sessionId: string }> {
@@ -129,6 +128,7 @@ class AuthController {
   }
 
   
+  @Post('/google/callback')
   @OpenAPI({
     summary: 'Google authentication callback',
     description:
@@ -143,13 +143,11 @@ class AuthController {
       }
     ],
     responses: {
-      302: {
-        description: 'Redirect to frontend after login'
+      200: {
+        description: 'User authenticated and logged in via Google'
       }
     }
   })
-  
-  @Post('/google/callback')
   async googleCallback(@Body() data: GoogleLoginDTO): Promise<IAuthResponse> {
     return await this.authService.loginGoogle(data.code);
   }

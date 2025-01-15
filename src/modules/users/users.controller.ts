@@ -25,7 +25,7 @@ class UsersController {
   @OpenAPI({
     summary: 'Update current user profile',
     description: 'Updates the profile of the currently authenticated user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     requestBody: {
       required: true,
       content: {
@@ -52,7 +52,7 @@ class UsersController {
   @OpenAPI({
     summary: 'Get current user details',
     description: 'Get details of the currently authenticated user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     responses: {
       '200': {
         description: 'User details retrieved successfully',
@@ -70,7 +70,7 @@ class UsersController {
     summary: 'Upload user avatar',
     description:
       'Allows user to upload and update their avatar.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     requestBody: {
       required: true,
       content: {

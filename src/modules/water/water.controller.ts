@@ -29,7 +29,7 @@ class WaterController {
   @OpenAPI({
     summary: 'Add water consumption record',
     description: 'Adds a new water consumption record for user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     requestBody: {
       required: true,
       content: {
@@ -64,7 +64,7 @@ class WaterController {
   @OpenAPI({
     summary: 'Edit water consumption record',
     description: 'Edits a specific water consumption record for user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     parameters: [
       {
         name: 'waterId',
@@ -107,7 +107,7 @@ class WaterController {
   @OpenAPI({
     summary: 'Delete water consumption record',
     description: 'Deletes a specific water consumption record for user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     parameters: [
       {
         name: 'waterId',
@@ -136,7 +136,7 @@ class WaterController {
   @OpenAPI({
     summary: 'Get daily water consumption',
     description: 'Get all water consumption records for a specific date for user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     parameters: [
       {
         name: 'date',
@@ -167,7 +167,7 @@ class WaterController {
   @OpenAPI({
     summary: 'Get monthly water consumption',
     description: 'Get all water consumption records for a specific month for user.',
-    security: [{ cookieAuth: [] }],
+    security: [{ bearerAuth: [] }],
     parameters: [
       {
         name: 'date',

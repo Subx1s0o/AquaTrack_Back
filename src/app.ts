@@ -60,10 +60,10 @@ export const initializeApp = (): express.Application => {
     components: {
       schemas,
       securitySchemes: {
-        cookieAuth: {
-          type: 'apiKey',
-          in: 'cookie',
-          name: 'SESSIONID', 
+        bearerAuth: {
+        type: 'http', 
+        scheme: 'bearer', 
+        bearerFormat: 'JWT', 
         },
       },
     },
@@ -72,7 +72,7 @@ export const initializeApp = (): express.Application => {
       title: 'API Documentation',
       version: '1.0.0'
     },
-    security: [{ cookieAuth: [] }], 
+    security: [{ bearerAuth: [] }], 
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
