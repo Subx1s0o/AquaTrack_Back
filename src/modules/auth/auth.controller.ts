@@ -12,19 +12,21 @@ import {
 import { Service } from 'typedi';
 import AuthService from './auth.service';
 import { RegisterDto } from './dto/register';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { LoginDto } from './dto/login';
 import { IUser } from '@/libs/db';
 import { ConfigService } from '@/libs/global';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 
+import { IAuthResponse } from '@/types/authResponse';
+import { LogoutDto } from './dto/logout';
+import { RefreshDto } from './dto/refresh';
+import { GoogleLoginDTO } from './dto/google';
+
 @Service()
 @JsonController('/auth')
 class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly config: ConfigService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('/register')
   @HttpCode(201)
@@ -47,11 +49,8 @@ class AuthController {
     }
   })
   @ResponseSchema(RegisterDto)
-  async register(
-    @Res() res: Response,
-    @Body() body: RegisterDto
-  ): Promise<Omit<IUser, 'password'>> {
-    return await this.authService.register(res, body);
+  async register(@Body() body: RegisterDto): Promise<IAuthResponse> {
+    return await this.authService.register(body);
   }
 
   @Post('/login')
@@ -74,11 +73,8 @@ class AuthController {
     }
   })
   @ResponseSchema(LoginDto)
-  async login(
-    @Res() res: Response,
-    @Body() body: LoginDto
-  ): Promise<Omit<IUser, 'password'>> {
-    return await this.authService.login(res, body);
+  async login(@Body() body: LoginDto): Promise<IAuthResponse> {
+    return await this.authService.login(body);
   }
 
   @Post('/logout')
@@ -94,21 +90,8 @@ class AuthController {
       }
     }
   })
-  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const sessionId = req.cookies?.sessionId as string | undefined;
-
-    if (!sessionId) {
-      res.clearCookie('sessionId');
-      res.clearCookie('refreshToken');
-      res.clearCookie('accessToken');
-      throw new UnauthorizedError('You are not logged in');
-    }
-
-    await this.authService.logout(sessionId);
-    res.clearCookie('sessionId');
-    res.clearCookie('refreshToken');
-    res.clearCookie('accessToken');
-    res.status(204).end();
+  async logout(@Body() data: LogoutDto): Promise<void> {
+    return await this.authService.logout(data.sessionId);
   }
 
   @Post('/refresh')
@@ -124,20 +107,15 @@ class AuthController {
       }
     }
   })
-  async refresh(@Res() res: Response, @Req() req: Request): Promise<void> {
-    const sessionId = req.cookies?.sessionId as string | undefined;
-    const refreshToken = req.cookies?.refreshToken as string | undefined;
 
+  async refresh(
+    @Body() { refreshToken, sessionId }: RefreshDto
+  ): Promise<{ accessToken: string; refreshToken: string; sessionId: string }> {
     if (!sessionId || !refreshToken) {
-      res.clearCookie('sessionId');
-      res.clearCookie('refreshToken');
-      res.clearCookie('accessToken');
-
       throw new UnauthorizedError('You are not logged in');
     }
 
-    await this.authService.refresh(res, sessionId, refreshToken);
-    res.status(204).end();
+    return await this.authService.refresh(sessionId, refreshToken);
   }
 
   @Get('/google')
@@ -154,7 +132,7 @@ class AuthController {
     res.redirect(this.authService.returnLink());
   }
 
-  @Get('/google/callback')
+  
   @OpenAPI({
     summary: 'Google authentication callback',
     description:
@@ -174,15 +152,10 @@ class AuthController {
       }
     }
   })
-  async googleCallback(
-    @QueryParam('code') code: string,
-    @Res() res: Response
-  ): Promise<void> {
-    await this.authService.loginGoogle(code, res);
-
-    const frontEndUrl = this.config.get('FRONTEND_LINK');
-
-    res.redirect(frontEndUrl);
+  
+  @Post('/google/callback')
+  async googleCallback(@Body() data: GoogleLoginDTO): Promise<IAuthResponse> {
+    return await this.authService.loginGoogle(data.code);
   }
 }
 
