@@ -6,7 +6,7 @@ import {
   useExpressServer
 } from 'routing-controllers';
 import { Container } from 'typedi';
-import { configDotenv } from 'dotenv';
+import { config, configDotenv } from 'dotenv';
 import { errorHandler, notFoundHandler } from '../libs/middlewares';
 import { Logger, ConfigService } from '@/libs/global';
 import cookieParser from 'cookie-parser';
@@ -22,18 +22,6 @@ import WaterController from './modules/water/water.controller';
 configDotenv();
 console.clear();
 
-const routingControllersOptions = {
-  cors: {
-    credentials: true,
-    origin: ['http://localhost:3000', config.get('FRONTEND_LINK')],
-    methods: 'GET,PUT,PATCH,POST,DELETE'
-  },
-  controllers: [AuthController, UsersController, WaterController],
-  defaultErrorHandler: false,
-  validation: true,
-  currentUserChecker: userChecker,
-  authorizationChecker: authorizationChecker
-};
 
 export const initializeApp = (): express.Application => {
   const app = express();
@@ -47,6 +35,19 @@ export const initializeApp = (): express.Application => {
 
   app.use(express.json());
   app.use(cookieParser());
+
+  const routingControllersOptions = {
+  cors: {
+    credentials: true,
+    origin: ['http://localhost:3000', config.get('FRONTEND_LINK')],
+    methods: 'GET,PUT,PATCH,POST,DELETE'
+  },
+  controllers: [AuthController, UsersController, WaterController],
+  defaultErrorHandler: false,
+  validation: true,
+  currentUserChecker: userChecker,
+  authorizationChecker: authorizationChecker
+};
 
   useExpressServer(app, routingControllersOptions);
 
