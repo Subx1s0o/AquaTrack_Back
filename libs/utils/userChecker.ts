@@ -14,5 +14,6 @@ export async function userChecker(action: Action): Promise<IUser> {
   if (!user) {
     throw new UnauthorizedError('You are not logged in to do this');
   }
-  return user;
+  const { password: _, ...userWithoutPassword } = user;
+  return JSON.parse(JSON.stringify(userWithoutPassword));
 }
