@@ -31,8 +31,7 @@ const userSchema = new Schema<IUser>(
     avatarURL: {
       type: String,
       required: false,
-      default:
-        'https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png'
+      default: null
     },
     weight: {
       type: Number,
