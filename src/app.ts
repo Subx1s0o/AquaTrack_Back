@@ -6,7 +6,7 @@ import {
   useExpressServer
 } from 'routing-controllers';
 import { Container } from 'typedi';
-import { config, configDotenv } from 'dotenv';
+import {configDotenv } from 'dotenv';
 import { errorHandler, notFoundHandler } from '../libs/middlewares';
 import { Logger, ConfigService } from '@/libs/global';
 import cookieParser from 'cookie-parser';
