@@ -1,18 +1,27 @@
 import express from 'express';
 
-import { useContainer, useExpressServer } from 'routing-controllers';
+import {
+  getMetadataArgsStorage,
+  useContainer,
+  useExpressServer
+} from 'routing-controllers';
 import { Container } from 'typedi';
-import { configDotenv } from 'dotenv';
+import {configDotenv } from 'dotenv';
 import { errorHandler, notFoundHandler } from '../libs/middlewares';
 import { Logger, ConfigService } from '@/libs/global';
 import cookieParser from 'cookie-parser';
 import { authorizationChecker } from '@/libs/utils/authorizationChecker';
 import { userChecker } from '@/libs/utils/userChecker';
 import AuthController from './modules/auth/auth.controller';
-import WaterController from './modules/water/water.controller';
+import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
+import { routingControllersToSpec } from 'routing-controllers-openapi';
+import * as swaggerUiExpress from 'swagger-ui-express';
 import UsersController from './modules/users/users.controller';
+import WaterController from './modules/water/water.controller';
+
 configDotenv();
 console.clear();
+
 
 export const initializeApp = (): express.Application => {
   const app = express();
@@ -27,18 +36,48 @@ export const initializeApp = (): express.Application => {
   app.use(express.json());
   app.use(cookieParser());
 
-  useExpressServer(app, {
-    cors: {
-      credentials: true,
-      origin: ['http://localhost:3000', config.get('FRONTEND_LINK')],
-      methods: 'GET,PUT,PATCH,POST,DELETE'
+  const routingControllersOptions = {
+  cors: {
+    credentials: true,
+    origin: ['http://localhost:3000', config.get('FRONTEND_LINK')],
+    methods: 'GET,PUT,PATCH,POST,DELETE'
+  },
+  controllers: [AuthController, UsersController, WaterController],
+  defaultErrorHandler: false,
+  validation: true,
+  currentUserChecker: userChecker,
+  authorizationChecker: authorizationChecker
+};
+
+  useExpressServer(app, routingControllersOptions);
+
+  const schemas = validationMetadatasToSchemas({
+    refPointerPrefix: '#/components/schemas/'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  const storage = getMetadataArgsStorage();
+  const spec = routingControllersToSpec(storage, routingControllersOptions, {
+    components: {
+      schemas,
+      securitySchemes: {
+        bearerAuth: {
+        type: 'http', 
+        scheme: 'bearer', 
+        bearerFormat: 'JWT', 
+        },
+      },
     },
-    controllers: [AuthController, WaterController, UsersController],
-    defaultErrorHandler: false,
-    validation: true,
-    currentUserChecker: userChecker,
-    authorizationChecker: authorizationChecker
+    info: {
+      description: 'Generated with `routing-controllers-openapi`',
+      title: 'API Documentation',
+      version: '1.0.0'
+    },
+    security: [{ bearerAuth: [] }], 
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  app.use('/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));
 
   app.use('*', notFoundHandler);
   app.use(errorHandler);

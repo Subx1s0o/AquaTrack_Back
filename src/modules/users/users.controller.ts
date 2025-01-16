@@ -1,6 +1,5 @@
-import { Get, Req } from 'routing-controllers';
+import { Get, JsonController, Req } from 'routing-controllers';
 import {
-  Controller,
   Patch,
   Post,
   UploadedFile,
@@ -13,13 +12,35 @@ import UsersService from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from '@/libs/db/models/user';
 import { upload } from '@/libs/utils/cloudinary';
+import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
+
+
 @Service()
-@Controller('/users')
+@JsonController('/users')
 class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Patch('/')
   @Authorized()
+  @OpenAPI({
+    summary: 'Update current user profile',
+    description: 'Updates the profile of the currently authenticated user.',
+    security: [{ bearerAuth: [] }],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/UpdateUserDto' },
+        },
+      },
+    },
+    responses: {
+      '200': {
+        description: 'User profile updated successfully',
+      },
+    },
+  })
+  @ResponseSchema(UpdateUserDto)
   async updateMe(
     @Req() req: Request & { userId: string },
     @Body() body: UpdateUserDto
@@ -28,12 +49,51 @@ class UsersController {
   }
   @Get('/')
   @Authorized()
+  @OpenAPI({
+    summary: 'Get current user details',
+    description: 'Get details of the currently authenticated user.',
+    security: [{ bearerAuth: [] }],
+    responses: {
+      '200': {
+        description: 'User details retrieved successfully',
+      },
+    },
+  })
+  @ResponseSchema(UpdateUserDto)
   async getMe(@CurrentUser({ required: true }) user: IUser): Promise<IUser> {
     return user;
   }
 
   @Post('/avatar')
   @Authorized()
+    @OpenAPI({
+    summary: 'Upload user avatar',
+    description:
+      'Allows user to upload and update their avatar.',
+    security: [{ bearerAuth: [] }],
+    requestBody: {
+      required: true,
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              file: {
+                type: 'string',
+                format: 'binary',
+              },
+            },
+          },
+        },
+      },
+    },
+    responses: {
+      '200': {
+        description: 'Avatar updated successfully'
+      },
+    },
+  })
+  @ResponseSchema(UpdateUserDto)
   async uploadAvatar(
     @Req() req: Request & { userId: string },
     @UploadedFile('file', { options: upload }) file: Express.Multer.File
