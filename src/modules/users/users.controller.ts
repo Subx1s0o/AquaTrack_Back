@@ -14,7 +14,6 @@ import { IUser } from '@/libs/db/models/user';
 import { upload } from '@/libs/utils/cloudinary';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 
-
 @Service()
 @JsonController('/users')
 class UsersController {
@@ -30,21 +29,21 @@ class UsersController {
       required: true,
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/UpdateUserDto' },
-        },
-      },
+          schema: { $ref: '#/components/schemas/UpdateUserDto' }
+        }
+      }
     },
     responses: {
       '200': {
-        description: 'User profile updated successfully',
-      },
-    },
+        description: 'User profile updated successfully'
+      }
+    }
   })
   @ResponseSchema(UpdateUserDto)
   async updateMe(
     @Req() req: Request & { userId: string },
     @Body() body: UpdateUserDto
-  ) {
+  ): Promise<UpdateUserDto> {
     return await this.usersService.updateUser(req.userId, body);
   }
   @Get('/')
@@ -55,9 +54,9 @@ class UsersController {
     security: [{ bearerAuth: [] }],
     responses: {
       '200': {
-        description: 'User details retrieved successfully',
-      },
-    },
+        description: 'User details retrieved successfully'
+      }
+    }
   })
   @ResponseSchema(UpdateUserDto)
   async getMe(@CurrentUser({ required: true }) user: IUser): Promise<IUser> {
@@ -66,10 +65,9 @@ class UsersController {
 
   @Post('/avatar')
   @Authorized()
-    @OpenAPI({
+  @OpenAPI({
     summary: 'Upload user avatar',
-    description:
-      'Allows user to upload and update their avatar.',
+    description: 'Allows user to upload and update their avatar.',
     security: [{ bearerAuth: [] }],
     requestBody: {
       required: true,
@@ -80,24 +78,24 @@ class UsersController {
             properties: {
               file: {
                 type: 'string',
-                format: 'binary',
-              },
-            },
-          },
-        },
-      },
+                format: 'binary'
+              }
+            }
+          }
+        }
+      }
     },
     responses: {
       '200': {
         description: 'Avatar updated successfully'
-      },
-    },
+      }
+    }
   })
   @ResponseSchema(UpdateUserDto)
   async uploadAvatar(
     @Req() req: Request & { userId: string },
     @UploadedFile('file', { options: upload }) file: Express.Multer.File
-  ) {
+  ): Promise<UpdateUserDto> {
     const updatedUser = await this.usersService.updateUser(req.userId, {
       avatarURL: file.path
     });

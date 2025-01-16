@@ -2,8 +2,7 @@ import { Service } from 'typedi';
 
 import { AddWaterDTO, EditWaterDTO } from './dto';
 import { WaterRepository } from '@/modules/water/water.repository';
-import { IWater } from '@/libs/db/models/water';
-import { BadRequestError, NotFoundError } from 'routing-controllers';
+
 import { IWaterConsumption } from 'types/WaterConsumption';
 import { WaterConsumptionHelper } from './helpers/water-consumption.helper';
 import { UserRepository } from '../users/user.repository';
@@ -38,27 +37,9 @@ class WaterService {
     waterId: string,
     userId: string
   ): Promise<Omit<IWaterConsumption, 'userId'> | null> {
-    const updateFields: Partial<Omit<IWater, 'userId'>> = {};
-
-    for (const key in body) {
-      if (body.hasOwnProperty(key)) {
-        const typedKey = key as keyof EditWaterDTO;
-
-        if (typedKey in updateFields) {
-          updateFields[typedKey as keyof Omit<IWater, 'userId'>] = body[
-            typedKey
-          ] as IWater[keyof IWater];
-        }
-      }
-    }
-
-    if (Object.keys(updateFields).length === 0) {
-      throw new BadRequestError('No valid fields provided for update');
-    }
-
     const updatedRecord = await this.waterRepository.updateOne(
       { _id: waterId, userId },
-      { ...updateFields }
+      { ...body }
     );
 
     return updatedRecord;
@@ -84,9 +65,10 @@ class WaterService {
       .then((user) => user.dailyNorm);
 
     if (!dailyConsumption || dailyConsumption.length === 0) {
-      throw new NotFoundError(
-        'No daily water consumption found for the given date'
-      );
+      return {
+        totalPercentage: 0,
+        records: []
+      };
     }
 
     const totalAmount = dailyConsumption.reduce(
