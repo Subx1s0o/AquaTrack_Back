@@ -34,15 +34,15 @@ class WaterController {
       required: true,
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/AddWaterDTO' },
-        },
-      },
+          schema: { $ref: '#/components/schemas/AddWaterDTO' }
+        }
+      }
     },
     responses: {
       '201': {
-        description: 'Water consumption record added successfully.',
-      },
-    },
+        description: 'Water consumption record added successfully.'
+      }
+    }
   })
   @ResponseSchema(AddWaterDTO)
   async addWaterConsumption(
@@ -71,22 +71,22 @@ class WaterController {
         in: 'path',
         required: true,
         schema: { type: 'string' },
-        description: 'ID of the water record to edit.',
-      },
+        description: 'ID of the water record to edit.'
+      }
     ],
     requestBody: {
       required: true,
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/EditWaterDTO' },
-        },
-      },
+          schema: { $ref: '#/components/schemas/EditWaterDTO' }
+        }
+      }
     },
     responses: {
       '200': {
-        description: 'Water consumption record updated successfully.',
-      },
-    },
+        description: 'Water consumption record updated successfully.'
+      }
+    }
   })
   @ResponseSchema(EditWaterDTO)
   async editWaterRecord(
@@ -102,7 +102,7 @@ class WaterController {
   }
 
   @Delete('/:waterId')
-  @HttpCode(204)
+  @HttpCode(200)
   @Authorized()
   @OpenAPI({
     summary: 'Delete water consumption record',
@@ -114,28 +114,31 @@ class WaterController {
         in: 'path',
         required: true,
         schema: { type: 'string' },
-        description: 'ID of the water record to delete.',
-      },
+        description: 'ID of the water record to delete.'
+      }
     ],
     responses: {
-      '204': { description: 'Water consumption record deleted successfully.' },
-    },
+      '204': { description: 'Water consumption record deleted successfully.' }
+    }
   })
   async deleteWaterRecord(
     @Param('waterId') waterId: string,
     @Req() req: Request & { userId: string }
-  ): Promise<void> {
-    return await this.waterConsumptionService.deleteWaterConsumption(
+  ): Promise<{ message: string }> {
+    await this.waterConsumptionService.deleteWaterConsumption(
       waterId,
       req.userId
     );
+
+    return { message: 'Water consumption record deleted successfully.' };
   }
 
   @Get('/day/:date')
   @Authorized()
   @OpenAPI({
     summary: 'Get daily water consumption',
-    description: 'Get all water consumption records for a specific date for user.',
+    description:
+      'Get all water consumption records for a specific date for user.',
     security: [{ bearerAuth: [] }],
     parameters: [
       {
@@ -143,14 +146,14 @@ class WaterController {
         in: 'path',
         required: true,
         schema: { type: 'string', format: 'date' },
-        description: 'The date for which to fetch records (YYYY-MM-DD).',
-      },
+        description: 'The date for which to fetch records (YYYY-MM-DD).'
+      }
     ],
     responses: {
       '200': {
-        description: 'Daily water consumption fetched successfully.',
-      },
-    },
+        description: 'Daily water consumption fetched successfully.'
+      }
+    }
   })
   async getDailyWaterConsumption(
     @Param('date') date: string,
@@ -166,7 +169,8 @@ class WaterController {
   @Authorized()
   @OpenAPI({
     summary: 'Get monthly water consumption',
-    description: 'Get all water consumption records for a specific month for user.',
+    description:
+      'Get all water consumption records for a specific month for user.',
     security: [{ bearerAuth: [] }],
     parameters: [
       {
@@ -174,14 +178,14 @@ class WaterController {
         in: 'path',
         required: true,
         schema: { type: 'string', format: 'date' },
-        description: 'The month for which to fetch records (YYYY-MM).',
-      },
+        description: 'The month for which to fetch records (YYYY-MM).'
+      }
     ],
     responses: {
       '200': {
-        description: 'Monthly water consumption fetched successfully.',
-      },
-    },
+        description: 'Monthly water consumption fetched successfully.'
+      }
+    }
   })
   async getMonthlyWaterConsumption(
     @Param('date') date: string,

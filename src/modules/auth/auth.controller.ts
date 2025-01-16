@@ -86,8 +86,11 @@ class AuthController {
       }
     }
   })
-  async logout(@Body() data: LogoutDto): Promise<void> {
-    return await this.authService.logout(data.sessionId);
+  @HttpCode(200)
+  async logout(@Body() data: LogoutDto): Promise<{ message: string }> {
+    await this.authService.logout(data.sessionId);
+
+    return { message: 'Logged out successfully' };
   }
 
   @Post('/refresh')
@@ -95,7 +98,7 @@ class AuthController {
     summary: 'Refresh session tokens',
     description: 'Generates a new set of access and refresh tokens.',
     responses: {
-      204: {
+      200: {
         description: 'Tokens refreshed successfully'
       },
       401: {
@@ -127,7 +130,6 @@ class AuthController {
     res.redirect(this.authService.returnLink());
   }
 
-  
   @Post('/google/callback')
   @OpenAPI({
     summary: 'Google authentication callback',
