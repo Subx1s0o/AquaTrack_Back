@@ -45,8 +45,11 @@ class WaterService {
     return updatedRecord;
   }
 
-  async deleteWaterConsumption(waterId: string, userId: string): Promise<void> {
-    await this.waterRepository.deleteOne({
+  async deleteWaterConsumption(
+    waterId: string,
+    userId: string
+  ): Promise<IWaterConsumption> {
+    return await this.waterRepository.deleteOne({
       _id: waterId,
       userId
     });

@@ -3,6 +3,7 @@ import { IWater, WaterModel } from '@/libs/db';
 import { NotFoundError, BadRequestError } from 'routing-controllers';
 import { FilterQuery } from 'mongoose';
 import { Logger } from '@/libs/global';
+import { IWaterConsumption } from '@/types/WaterConsumption';
 
 @Service()
 export class WaterRepository {
@@ -62,7 +63,7 @@ export class WaterRepository {
     }
   }
 
-  async deleteOne(filter: FilterQuery<IWater>): Promise<void> {
+  async deleteOne(filter: FilterQuery<IWater>): Promise<IWaterConsumption> {
     const result = await WaterModel.findOneAndDelete(filter).exec();
 
     if (!result) {
@@ -72,6 +73,6 @@ export class WaterRepository {
       );
     }
     this.logger.log(`Water consumption record deleted successfully`);
-    return;
+    return result;
   }
 }
