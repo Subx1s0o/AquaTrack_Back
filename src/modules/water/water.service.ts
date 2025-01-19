@@ -54,7 +54,11 @@ class WaterService {
   async getDailyWaterConsumption(
     date: string,
     userId: string
-  ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
+  ): Promise<{
+    records: IWaterConsumption[];
+    totalPercentage: number;
+    date: string;
+  }> {
     const dailyConsumption = await this.waterRepository.findAll({
       userId,
       date
@@ -67,7 +71,8 @@ class WaterService {
     if (!dailyConsumption || dailyConsumption.length === 0) {
       return {
         totalPercentage: 0,
-        records: []
+        records: [],
+        date: date
       };
     }
 
@@ -85,7 +90,8 @@ class WaterService {
 
     return {
       totalPercentage: parseFloat(totalPercentage),
-      records: consumptionWithPercentage
+      records: consumptionWithPercentage,
+      date: date
     };
   }
 
