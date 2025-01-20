@@ -27,7 +27,7 @@ export class AuthHelper {
 
   generateToken(userId: string, expiresIn?: string): string {
     return jwt.sign({ sub: userId }, this.jwtSecret, {
-      expiresIn: expiresIn || '1h'
+      expiresIn: expiresIn || '30d'
     });
   }
 }
