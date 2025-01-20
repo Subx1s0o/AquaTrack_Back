@@ -90,8 +90,14 @@ class AuthService {
     refreshToken: string
   ): Promise<{ accessToken: string; refreshToken: string; sessionId: string }> {
     const session = await this.sessionService.findSession(sessionId);
-
+    console.log(session);
     if (!session || session.refreshToken !== refreshToken) {
+      console.log(
+        'Is match: ',
+        !session || session.refreshToken !== refreshToken
+      );
+      console.log('Received refresh token:', refreshToken);
+      console.log('Stored refresh token:', session?.refreshToken);
       throw new UnauthorizedError('Invalid refresh token');
     }
 
@@ -107,11 +113,14 @@ class AuthService {
       expiresAt: new Date(Date.now() + LifeTime.WEEK)
     });
 
-    const tokens = this.generateAccessAndRefreshToken(newSession.userId);
+    const accessToken = this.generateAccessAndRefreshToken(
+      newSession.userId
+    ).accessToken;
 
     return JSON.parse(
       JSON.stringify({
-        ...tokens,
+        accessToken,
+        refreshToken,
         sessionId: newSession._id
       })
     );
