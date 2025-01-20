@@ -44,7 +44,8 @@ const userSchema = new Schema<IUser>(
     gender: {
       type: String,
       required: false,
-      enum: ['male', 'female']
+      enum: ['male', 'female', 'other'],
+      default: 'other'
     },
     dailyNorm: {
       type: Number,
