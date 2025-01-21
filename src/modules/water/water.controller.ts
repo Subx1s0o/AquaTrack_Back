@@ -195,10 +195,13 @@ class WaterController {
     @Param('date') date: string,
     @Req() req: Request & { userId: string }
   ): Promise<{ records: IWaterConsumption[]; totalPercentage: number }> {
-    return await this.waterConsumptionService.getMonthlyWaterConsumption(
-      date,
-      req.userId
-    );
+    const result =
+      await this.waterConsumptionService.getMonthlyWaterConsumption(
+        date,
+        req.userId
+      );
+
+    return result;
   }
 }
 

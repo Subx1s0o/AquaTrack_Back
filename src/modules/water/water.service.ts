@@ -130,6 +130,7 @@ class WaterService {
     );
     const { records, totalPercentage } =
       this.waterConsumptionHelper.generateResult(lastDayOfMonth, groupedByDate);
+
     return { records, totalPercentage };
   }
 }
