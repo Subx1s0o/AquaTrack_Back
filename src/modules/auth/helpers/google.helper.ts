@@ -18,8 +18,8 @@ export class GoogleHelper {
       clientSecret: this.config.get('GOOGLE_CLIENT_SECRET'),
       redirectUri:
         process.env.NODE_ENV === 'production'
-          ? 'https://node-goit-project.onrender.com/auth/google/callback'
-          : 'http://localhost:3000/auth/google/callback'
+          ? 'https://aqua-track-xi.vercel.app/google'
+          : 'http://localhost:3000/google'
     });
   }
 
