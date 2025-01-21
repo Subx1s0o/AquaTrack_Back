@@ -2,7 +2,7 @@ import { ConfigService, Logger } from '@/libs/global';
 import { OAuth2Client } from 'google-auth-library';
 import { IdTokenPayload } from 'types';
 import { Service } from 'typedi';
-import { InternalServerError } from 'routing-controllers';
+import { BadRequestError } from 'routing-controllers';
 import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 
 @Service()
@@ -39,7 +39,7 @@ export class GoogleHelper {
         await this.googleConfig.getToken(encoded);
 
       if (!response.tokens.id_token) {
-        throw new InternalServerError('No id_token in response from Google');
+        throw new BadRequestError('No id_token in response from Google');
       }
 
       const ticket = await this.googleConfig.verifyIdToken({
@@ -50,7 +50,7 @@ export class GoogleHelper {
       const verifiedUser = ticket.getPayload();
 
       if (!verifiedUser) {
-        throw new InternalServerError('No payload from Google');
+        throw new BadRequestError('No payload from Google');
       }
 
       this.logger.log('Successfully verified google token');
@@ -58,7 +58,7 @@ export class GoogleHelper {
     } catch {
       this.logger.error('Failed to get or verify token');
 
-      throw new InternalServerError('Failed to get or verify token');
+      throw new BadRequestError('Failed to get or verify token');
     }
   }
 }
